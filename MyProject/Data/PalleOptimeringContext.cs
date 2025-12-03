@@ -113,6 +113,126 @@ namespace MyProject.Data
                 }
             );
 
+            // Seed data - sample elementer med realistiske mål
+            modelBuilder.Entity<Element>().HasData(
+                // Døre - Serie A
+                new Element
+                {
+                    Id = 1,
+                    Reference = "DØR-001",
+                    Type = "Dør",
+                    Serie = "Serie-A",
+                    Hoejde = 2100,  // Standard dør højde
+                    Bredde = 900,   // Standard dør bredde
+                    Dybde = 120,    // Dør tykkelse med karm
+                    Vaegt = 45m,    // Typisk vægt for træ/glas dør
+                    RotationsRegel = "Ja",
+                    ErSpecialelement = false,
+                    ErGeometrielement = false
+                },
+                new Element
+                {
+                    Id = 2,
+                    Reference = "DØR-002",
+                    Type = "Dør",
+                    Serie = "Serie-A",
+                    Hoejde = 2100,
+                    Bredde = 800,   // Smallere dør
+                    Dybde = 120,
+                    Vaegt = 42m,
+                    RotationsRegel = "Ja",
+                    ErSpecialelement = false,
+                    ErGeometrielement = false
+                },
+                new Element
+                {
+                    Id = 3,
+                    Reference = "DØR-003",
+                    Type = "Dør",
+                    Serie = "Serie-A",
+                    Hoejde = 2100,
+                    Bredde = 1200,  // Dobbelt dør
+                    Dybde = 120,
+                    Vaegt = 65m,
+                    RotationsRegel = "Nej",  // Tung dør må ikke roteres
+                    ErSpecialelement = false,
+                    ErGeometrielement = false
+                },
+                // Vinduer - Serie B
+                new Element
+                {
+                    Id = 4,
+                    Reference = "VIND-001",
+                    Type = "Vindue",
+                    Serie = "Serie-B",
+                    Hoejde = 1200,
+                    Bredde = 1000,
+                    Dybde = 150,    // Med karm
+                    Vaegt = 28m,
+                    RotationsRegel = "Ja",
+                    ErSpecialelement = false,
+                    ErGeometrielement = false
+                },
+                new Element
+                {
+                    Id = 5,
+                    Reference = "VIND-002",
+                    Type = "Vindue",
+                    Serie = "Serie-B",
+                    Hoejde = 1400,
+                    Bredde = 800,
+                    Dybde = 150,
+                    Vaegt = 25m,
+                    RotationsRegel = "Ja",
+                    ErSpecialelement = false,
+                    ErGeometrielement = false
+                },
+                new Element
+                {
+                    Id = 6,
+                    Reference = "VIND-003",
+                    Type = "Vindue",
+                    Serie = "Serie-B",
+                    Hoejde = 1800,  // Stort vindue
+                    Bredde = 1500,
+                    Dybde = 150,
+                    Vaegt = 52m,
+                    RotationsRegel = "Nej",
+                    ErSpecialelement = false,
+                    ErGeometrielement = false
+                },
+                // Special vinduer - Serie C
+                new Element
+                {
+                    Id = 7,
+                    Reference = "SPEC-001",
+                    Type = "Vindue",
+                    Serie = "Serie-C",
+                    Hoejde = 2200,  // Panorama vindue
+                    Bredde = 2400,
+                    Dybde = 180,
+                    Vaegt = 95m,
+                    RotationsRegel = "Nej",
+                    ErSpecialelement = true,
+                    ErGeometrielement = false,
+                    MaksElementerPrPalle = 2  // Max 2 store panorama vinduer pr palle
+                },
+                new Element
+                {
+                    Id = 8,
+                    Reference = "GEOM-001",
+                    Type = "Vindue",
+                    Serie = "Serie-C",
+                    Hoejde = 1600,  // Buet vindue
+                    Bredde = 1200,
+                    Dybde = 200,
+                    Vaegt = 48m,
+                    RotationsRegel = "Skal",  // Skal roteres pga. form
+                    ErSpecialelement = true,
+                    ErGeometrielement = true  // Må ikke stables ovenpå
+                }
+            );
+
             // Seed data - standard settings
             modelBuilder.Entity<PalleOptimeringSettings>().HasData(
                 new PalleOptimeringSettings
