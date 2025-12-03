@@ -31,22 +31,44 @@ namespace MyProject.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
+            // Debug logging
+            Console.WriteLine($"Login POST called");
+            Console.WriteLine($"Email: '{model?.Email ?? "null"}'");
+            Console.WriteLine($"Password length: {model?.Password?.Length ?? 0}");
+            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("ModelState errors:");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"  - {error.ErrorMessage}");
+                }
+            }
+
             if (ModelState.IsValid)
             {
+                Console.WriteLine($"Attempting to sign in user: {model.Email}");
+
                 var result = await _signInManager.PasswordSignInAsync(
                     model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
 
+                Console.WriteLine($"Sign in result: Succeeded={result.Succeeded}, IsLockedOut={result.IsLockedOut}, RequiresTwoFactor={result.RequiresTwoFactor}");
+
                 if (result.Succeeded)
                 {
+                    Console.WriteLine("Login successful!");
                     return RedirectToLocal(returnUrl);
                 }
                 else
                 {
+                    Console.WriteLine("Login failed - invalid credentials");
                     ModelState.AddModelError(string.Empty, "Ugyldigt login forsøg.");
                     return View(model);
                 }
             }
 
+            Console.WriteLine("Returning view with model errors");
             return View(model);
         }
 
