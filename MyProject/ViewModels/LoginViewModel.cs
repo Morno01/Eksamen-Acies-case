@@ -5,7 +5,6 @@ namespace MyProject.ViewModels
     public class LoginViewModel
     {
         [Required(ErrorMessage = "Email er påkrævet")]
-        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password er påkrævet")]
