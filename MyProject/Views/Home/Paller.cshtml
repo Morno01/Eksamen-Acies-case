@@ -4,16 +4,98 @@
 
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="text-white"><i class="fas fa-pallet"></i> Paller Oversigt</h1>
-        <p class="text-white">Administrer tilgængelige paller i systemet</p>
+        <h1 class="text-white"><i class="fas fa-pallet"></i> Paller Management</h1>
+        <p class="text-white">Opret og administrer tilgængelige paller i systemet</p>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-12">
+    <div class="col-lg-5">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0"><i class="fas fa-list"></i> Aktive Paller</h4>
+                <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Opret Ny Palle</h4>
+            </div>
+            <div class="card-body">
+                <form id="palleForm">
+                    <div class="mb-3">
+                        <label class="form-label">Palle Beskrivelse *</label>
+                        <input type="text" class="form-control" id="palleBeskrivelse" placeholder="120'er Træpalle" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pallegruppe</label>
+                            <input type="text" class="form-control" id="pallegruppe" placeholder="120">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Palletype *</label>
+                            <select class="form-select" id="palletype" required>
+                                <option value="">Vælg type...</option>
+                                <option value="Trae">Træ</option>
+                                <option value="Metal">Metal</option>
+                                <option value="Plastik">Plastik</option>
+                                <option value="Special">Special</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Længde (mm) *</label>
+                            <input type="number" class="form-control" id="laengde" placeholder="2400" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Bredde (mm) *</label>
+                            <input type="number" class="form-control" id="bredde" placeholder="1200" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Højde (mm) *</label>
+                            <input type="number" class="form-control" id="hoejde" placeholder="150" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vægt (kg) *</label>
+                            <input type="number" step="0.1" class="form-control" id="vaegt" placeholder="35.0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Overmål (mm)</label>
+                            <input type="number" class="form-control" id="overmaal" placeholder="50" value="50">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Maks Højde (mm) *</label>
+                            <input type="number" class="form-control" id="maksHoejde" placeholder="2800" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Maks Vægt (kg) *</label>
+                            <input type="number" step="0.1" class="form-control" id="maksVaegt" placeholder="1500.0" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Luft mellem elementer (mm)</label>
+                        <input type="number" class="form-control" id="luftMellemElementer" placeholder="10" value="10">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="aktiv" checked>
+                        <label class="form-check-label" for="aktiv">
+                            Aktiv
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-plus"></i> Opret Palle
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-list"></i> Alle Paller</h4>
+                <button class="btn btn-sm btn-outline-light" onclick="loadPaller()">
+                    <i class="fas fa-sync"></i> Opdater
+                </button>
             </div>
             <div class="card-body">
                 <div id="loading" class="loading">
@@ -32,6 +114,46 @@
     <script>
         const API_BASE = window.location.origin;
 
+        // Opret palle
+        document.getElementById('palleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const palle = {
+                palleBeskrivelse: document.getElementById('palleBeskrivelse').value,
+                pallegruppe: document.getElementById('pallegruppe').value || null,
+                palletype: document.getElementById('palletype').value,
+                laengde: parseInt(document.getElementById('laengde').value),
+                bredde: parseInt(document.getElementById('bredde').value),
+                hoejde: parseInt(document.getElementById('hoejde').value),
+                vaegt: parseFloat(document.getElementById('vaegt').value),
+                overmaal: parseInt(document.getElementById('overmaal').value) || 50,
+                maksHoejde: parseInt(document.getElementById('maksHoejde').value),
+                maksVaegt: parseFloat(document.getElementById('maksVaegt').value),
+                luftMellemElementer: parseInt(document.getElementById('luftMellemElementer').value) || 10,
+                aktiv: document.getElementById('aktiv').checked,
+                sortering: 99 // Default sortering for nye paller
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/paller`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(palle)
+                });
+
+                if (response.ok) {
+                    alert('Palle oprettet!');
+                    document.getElementById('palleForm').reset();
+                    document.getElementById('aktiv').checked = true; // Reset checkbox til checked
+                    loadPaller();
+                } else {
+                    alert('Fejl ved oprettelse');
+                }
+            } catch (error) {
+                alert('Fejl: ' + error.message);
+            }
+        });
+
         async function loadPaller() {
             const loading = document.getElementById('loading');
             const container = document.getElementById('pallerContainer');
@@ -39,7 +161,7 @@
             loading.style.display = 'block';
 
             try {
-                const response = await fetch(`${API_BASE}/api/paller/aktive`);
+                const response = await fetch(`${API_BASE}/api/paller`);
                 const paller = await response.json();
 
                 if (paller.length === 0) {
@@ -47,53 +169,57 @@
                     return;
                 }
 
-                let html = '<div class="row g-4">';
+                let html = '';
 
                 paller.forEach(palle => {
+                    const statusBadge = palle.aktiv
+                        ? '<span class="badge bg-success">Aktiv</span>'
+                        : '<span class="badge bg-secondary">Inaktiv</span>';
+
                     html += `
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card palle-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <i class="fas fa-pallet text-primary"></i> ${palle.palleBeskrivelse}
-                                    </h5>
+                        <div class="element-box ${!palle.aktiv ? 'opacity-50' : ''}">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-pallet text-primary"></i>
+                                        ${palle.palleBeskrivelse}
+                                        ${statusBadge}
+                                    </h6>
                                     <div class="row g-2 mt-2">
-                                        <div class="col-6">
-                                            <small class="text-muted">Længde:</small><br>
-                                            <strong>${palle.laengde} mm</strong>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Dimensioner:</strong> ${palle.laengde}×${palle.bredde}×${palle.hoejde} mm
+                                            </small>
                                         </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Bredde:</small><br>
-                                            <strong>${palle.bredde} mm</strong>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Vægt:</strong> ${palle.vaegt} kg
+                                            </small>
                                         </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Højde:</small><br>
-                                            <strong>${palle.hoejde} mm</strong>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Type:</strong> ${palle.palletype}
+                                                ${palle.pallegruppe ? ` (${palle.pallegruppe})` : ''}
+                                            </small>
                                         </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Palletype:</small><br>
-                                            <strong>${palle.palletype}</strong>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Maks Højde:</small><br>
-                                            <strong>${palle.maksHoejde} mm</strong>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Maks Vægt:</small><br>
-                                            <strong>${palle.maksVaegt} kg</strong>
-                                        </div>
-                                        <div class="col-12">
-                                            <small class="text-muted">Pallegruppe:</small><br>
-                                            <span class="badge bg-info">${palle.pallegruppe || 'N/A'}</span>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Kapacitet:</strong> ${palle.maksVaegt} kg / ${palle.maksHoejde} mm
+                                            </small>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <small class="text-muted">
+                                        Overmål: ${palle.overmaal || 0} mm<br>
+                                        Luft: ${palle.luftMellemElementer || 0} mm
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     `;
                 });
 
-                html += '</div>';
                 container.innerHTML = html;
 
             } catch (error) {
