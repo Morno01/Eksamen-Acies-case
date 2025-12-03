@@ -11,29 +11,29 @@
             </div>
             <div class="card-body">
                 <form asp-action="Register" method="post">
-                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="mb-3">
-                        <label asp-for="FullName" class="form-label"></label>
-                        <input asp-for="FullName" class="form-control" />
+                        <label asp-for="FullName" class="form-label">Fulde Navn</label>
+                        <input asp-for="FullName" class="form-control" placeholder="Anders Andersen" autocomplete="name" />
                         <span asp-validation-for="FullName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" />
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control" placeholder="din@email.dk" autocomplete="username" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" />
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <input asp-for="Password" class="form-control" placeholder="Minimum 4 tegn" autocomplete="new-password" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label"></label>
-                        <input asp-for="ConfirmPassword" class="form-control" />
+                        <label asp-for="ConfirmPassword" class="form-label">Bekræft Password</label>
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Gentag password" autocomplete="new-password" />
                         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                     </div>
 
