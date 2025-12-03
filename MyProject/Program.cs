@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using MyProject.Data;
 using MyProject.Services;
 
@@ -21,7 +22,7 @@ builder.Services.AddScoped<IPalleOptimeringService, PalleOptimeringService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Palleoptimering API",
         Version = "v1",
