@@ -1,0 +1,238 @@
+@{
+    ViewData["Title"] = "Palleoptimering";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-white"><i class="fas fa-magic"></i> Palleoptimering</h1>
+        <p class="text-white">Generer optimal pakkeplan for dine elementer</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-cog"></i> Konfiguration</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Ordre Reference</label>
+                    <input type="text" class="form-control" id="ordreReference" placeholder="ORD-2024-001">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Vælg Elementer</label>
+                    <div id="elementSelect" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                        <p class="text-muted">Indlæser elementer...</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100" onclick="genererPakkeplan()" id="genererBtn">
+                    <i class="fas fa-magic"></i> Generer Pakkeplan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-chart-bar"></i> Resultat</h4>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3">Genererer pakkeplan...</p>
+                </div>
+                <div id="resultatContainer">
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-boxes fa-4x mb-3"></i>
+                        <p>Vælg elementer og klik "Generer Pakkeplan" for at starte</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const API_BASE = window.location.origin;
+        let selectedElements = [];
+
+        // Load elementer til valg
+        async function loadElementSelect() {
+            try {
+                const response = await fetch(`${API_BASE}/api/elementer`);
+                const elementer = await response.json();
+
+                const container = document.getElementById('elementSelect');
+
+                if (elementer.length === 0) {
+                    container.innerHTML = '<p class="text-muted">Ingen elementer fundet. <a href="/Home/Elementer">Opret elementer</a></p>';
+                    return;
+                }
+
+                let html = '';
+                elementer.forEach(el => {
+                    html += `
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" value="${el.id}" id="el${el.id}">
+                            <label class="form-check-label" for="el${el.id}">
+                                <strong>${el.reference || 'Element #' + el.id}</strong><br>
+                                <small class="text-muted">${el.hoejde}×${el.bredde}×${el.dybde} mm, ${el.vaegt} kg</small>
+                            </label>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+            } catch (error) {
+                document.getElementById('elementSelect').innerHTML = `<p class="text-danger">Fejl: ${error.message}</p>`;
+            }
+        }
+
+        // Generer pakkeplan
+        async function genererPakkeplan() {
+            const checkboxes = document.querySelectorAll('#elementSelect input[type="checkbox"]:checked');
+            const elementIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (elementIds.length === 0) {
+                alert('Vælg mindst ét element!');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const resultat = document.getElementById('resultatContainer');
+            const btn = document.getElementById('genererBtn');
+
+            loading.style.display = 'block';
+            resultat.innerHTML = '';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/palleoptimering/generer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        elementIds: elementIds,
+                        ordreReference: document.getElementById('ordreReference').value || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.meddelelser ? data.meddelelser.join(', ') : 'Fejl ved generering');
+                }
+
+                visResultat(data);
+
+            } catch (error) {
+                resultat.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Fejl: ${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        // Vis resultat visuelt
+        function visResultat(data) {
+            const container = document.getElementById('resultatContainer');
+
+            let html = `
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-check-circle"></i> Pakkeplan Genereret!</h5>
+                    <p class="mb-0">
+                        <strong>${data.antalPaller}</strong> paller bruges til <strong>${data.antalElementer}</strong> elementer
+                    </p>
+                </div>
+            `;
+
+            data.paller.forEach((palle, index) => {
+                const totalVaegt = palle.samletVaegt.toFixed(2);
+                const fillPercent = Math.min((palle.samletHoejde / 2800) * 100, 100);
+
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-pallet"></i> Palle ${palle.palleNummer}: ${palle.palleBeskrivelse}
+                                    </h5>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <small>${palle.antalLag} lag | ${totalVaegt} kg | ${palle.samletHoejde} mm</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="progress" style="height: 30px;">
+                                    <div class="progress-bar ${fillPercent > 90 ? 'bg-danger' : fillPercent > 70 ? 'bg-warning' : 'bg-success'}"
+                                         style="width: ${fillPercent}%">
+                                        ${fillPercent.toFixed(1)}% fyldt
+                                    </div>
+                                </div>
+                            </div>
+                `;
+
+                // Gruppe elementer efter lag
+                const lagMap = {};
+                palle.elementer.forEach(el => {
+                    if (!lagMap[el.lag]) lagMap[el.lag] = [];
+                    lagMap[el.lag].push(el);
+                });
+
+                Object.keys(lagMap).sort((a, b) => a - b).forEach(lag => {
+                    html += `
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="fas fa-layer-group"></i> Lag ${lag}
+                            </h6>
+                            <div class="row g-2">
+                    `;
+
+                    lagMap[lag].sort((a, b) => a.plads - b.plads).forEach(el => {
+                        html += `
+                            <div class="col-md-4">
+                                <div class="element-box">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>${el.reference || 'Element #' + el.elementId}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                ${el.hoejde}×${el.bredde} mm
+                                                <br>
+                                                ${el.vaegt} kg | Plads ${el.plads}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            ${el.erRoteret ? '<span class="badge bg-info"><i class="fas fa-sync"></i> Roteret</span>' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Load ved page load
+        document.addEventListener('DOMContentLoaded', loadElementSelect);
+    </script>
+}

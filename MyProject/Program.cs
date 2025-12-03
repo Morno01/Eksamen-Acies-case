@@ -6,7 +6,8 @@ using MyProject.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
 // Add DbContext
 builder.Services.AddDbContext<PalleOptimeringContext>(options =>
@@ -54,10 +55,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
+app.UseRouting();
+
 app.UseCors("AllowAll");
 
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapRazorPages();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

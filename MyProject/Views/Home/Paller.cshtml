@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Paller";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-white"><i class="fas fa-pallet"></i> Paller Oversigt</h1>
+        <p class="text-white">Administrer tilgængelige paller i systemet</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-list"></i> Aktive Paller</h4>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Indlæser...</span>
+                    </div>
+                    <p class="mt-3">Henter paller...</p>
+                </div>
+                <div id="pallerContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const API_BASE = window.location.origin;
+
+        async function loadPaller() {
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('pallerContainer');
+
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/paller/aktive`);
+                const paller = await response.json();
+
+                if (paller.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">Ingen paller fundet</div>';
+                    return;
+                }
+
+                let html = '<div class="row g-4">';
+
+                paller.forEach(palle => {
+                    html += `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card palle-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-pallet text-primary"></i> ${palle.palleBeskrivelse}
+                                    </h5>
+                                    <div class="row g-2 mt-2">
+                                        <div class="col-6">
+                                            <small class="text-muted">Længde:</small><br>
+                                            <strong>${palle.laengde} mm</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Bredde:</small><br>
+                                            <strong>${palle.bredde} mm</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Højde:</small><br>
+                                            <strong>${palle.hoejde} mm</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Palletype:</small><br>
+                                            <strong>${palle.palletype}</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Maks Højde:</small><br>
+                                            <strong>${palle.maksHoejde} mm</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Maks Vægt:</small><br>
+                                            <strong>${palle.maksVaegt} kg</strong>
+                                        </div>
+                                        <div class="col-12">
+                                            <small class="text-muted">Pallegruppe:</small><br>
+                                            <span class="badge bg-info">${palle.pallegruppe || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                container.innerHTML = `<div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Fejl ved indlæsning: ${error.message}
+                </div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Load paller når siden er klar
+        document.addEventListener('DOMContentLoaded', loadPaller);
+    </script>
+}

@@ -1,0 +1,92 @@
+@{
+    ViewData["Title"] = "Forside";
+}
+
+<div class="row">
+    <div class="col-12 text-center mb-5">
+        <h1 class="display-4 text-white fw-bold">
+            <i class="fas fa-boxes-stacked"></i> Palleoptimering System for Acies
+        </h1>
+        <p class="lead text-white">Optimer pakning af døre og vinduer på paller</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card palle-card h-100">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-pallet fa-4x text-primary"></i>
+                </div>
+                <h3 class="card-title">Paller</h3>
+                <p class="card-text">Administrer tilgængelige paller med dimensioner, vægtbegrænsninger og typer.</p>
+                <a href="/Home/Paller" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> Gå til Paller
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card palle-card h-100">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-door-open fa-4x text-success"></i>
+                </div>
+                <h3 class="card-title">Elementer</h3>
+                <p class="card-text">Opret og administrer elementer (døre/vinduer) der skal pakkes.</p>
+                <a href="/Home/Elementer" class="btn btn-success">
+                    <i class="fas fa-arrow-right"></i> Gå til Elementer
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card palle-card h-100">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-magic fa-4x text-warning"></i>
+                </div>
+                <h3 class="card-title">Palleoptimering</h3>
+                <p class="card-text">Generer optimal pakkeplan baseret på dine elementer.</p>
+                <a href="/Home/Optimering" class="btn btn-warning">
+                    <i class="fas fa-arrow-right"></i> Start Optimering
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-info-circle"></i> Om Systemet</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-check-circle text-success"></i> Funktioner</h5>
+                        <ul>
+                            <li>Intelligent palleoptimering algoritme</li>
+                            <li>Automatisk rotation af elementer</li>
+                            <li>Stabling med vægt- og højdebegrænsninger</li>
+                            <li>Konfigurerbare regler og indstillinger</li>
+                            <li>Visuel præsentation af resultater</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-rocket text-primary"></i> Sådan bruger du systemet</h5>
+                        <ol>
+                            <li>Tjek at paller er konfigureret korrekt</li>
+                            <li>Opret elementer der skal pakkes</li>
+                            <li>Generer pakkeplan med optimering</li>
+                            <li>Se resultat med placering på paller</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
