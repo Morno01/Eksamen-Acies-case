@@ -32,9 +32,9 @@ namespace MyProject.Services
             {
                 sorteret = prioritet.ToLower() switch
                 {
-                    "maerke" => sorteret == null
-                        ? elementerMedData.OrderBy(e => e.Element.Maerke ?? string.Empty)
-                        : sorteret.ThenBy(e => e.Element.Maerke ?? string.Empty),
+                    "type" => sorteret == null
+                        ? elementerMedData.OrderBy(e => e.Element.Type ?? string.Empty)
+                        : sorteret.ThenBy(e => e.Element.Type ?? string.Empty),
 
                     "specialelement" => sorteret == null
                         ? elementerMedData.OrderByDescending(e => e.Element.ErSpecialelement)

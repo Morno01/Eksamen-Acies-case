@@ -63,10 +63,10 @@ namespace MyProject.Models
 
         /// <summary>
         /// Sorteringskriterier prioritering (kommasepareret)
-        /// F.eks: "Maerke,Specialelement,Pallestorrelse,Elementstorrelse,Vaegt,Serie"
+        /// F.eks: "Type,Specialelement,Pallestorrelse,Elementstorrelse,Vaegt,Serie"
         /// </summary>
         [StringLength(500)]
-        public string SorteringsPrioritering { get; set; } = "Maerke,Specialelement,Pallestorrelse,Elementstorrelse,Vaegt,Serie";
+        public string SorteringsPrioritering { get; set; } = "Type,Specialelement,Pallestorrelse,Elementstorrelse,Vaegt,Serie";
 
         /// <summary>
         /// Om længste elementer skal placeres yderst (alternativt: vægtfordeling)

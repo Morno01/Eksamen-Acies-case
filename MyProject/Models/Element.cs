@@ -17,10 +17,10 @@ namespace MyProject.Models
         public string? Reference { get; set; }
 
         /// <summary>
-        /// Mærke for gruppering af elementer (optimeringsklump)
+        /// Type af element: Dør eller Vindue
         /// </summary>
-        [StringLength(100)]
-        public string? Maerke { get; set; }
+        [StringLength(50)]
+        public string? Type { get; set; }
 
         /// <summary>
         /// Serie (produktions batch)

@@ -127,7 +127,7 @@ namespace MyProject.Data
                     TilladStablingOpTilMaksElementVaegt = 70m,
                     TillaegMonteringAfEndeplade = 20,
                     Aktiv = true,
-                    SorteringsPrioritering = "Maerke,Specialelement,Pallestorrelse,Elementstorrelse,Vaegt,Serie",
+                    SorteringsPrioritering = "Type,Specialelement,Pallestorrelse,Elementstorrelse,Vaegt,Serie",
                     PlacerLaengsteElementerYderst = true,
                     MaksBalanceVaerdi = 100m
                 }

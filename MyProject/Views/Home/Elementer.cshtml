@@ -23,8 +23,12 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Mærke</label>
-                            <input type="text" class="form-control" id="maerke" placeholder="A">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" id="type">
+                                <option value="">Vælg type...</option>
+                                <option value="Dør">Dør</option>
+                                <option value="Vindue">Vindue</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Serie</label>
@@ -106,7 +110,7 @@
 
             const element = {
                 reference: document.getElementById('reference').value || null,
-                maerke: document.getElementById('maerke').value || null,
+                type: document.getElementById('type').value || null,
                 serie: document.getElementById('serie').value || null,
                 hoejde: parseInt(document.getElementById('hoejde').value),
                 bredde: parseInt(document.getElementById('bredde').value),
@@ -164,7 +168,7 @@
                                     </h6>
                                     <small class="text-muted">
                                         ${el.hoejde}×${el.bredde}×${el.dybde} mm | ${el.vaegt} kg
-                                        ${el.maerke ? ' | Mærke: ' + el.maerke : ''}
+                                        ${el.type ? ' | Type: ' + el.type : ''}
                                         ${el.serie ? ' | Serie: ' + el.serie : ''}
                                     </small>
                                     ${el.erSpecialelement ? '<span class="badge bg-warning ms-2">Special</span>' : ''}
