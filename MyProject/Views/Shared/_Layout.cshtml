@@ -115,18 +115,49 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/"><i class="fas fa-home"></i> Hjem</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/Paller"><i class="fas fa-pallet"></i> Paller</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/Elementer"><i class="fas fa-door-open"></i> Elementer</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Home/Optimering"><i class="fas fa-magic"></i> Palleoptimering</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/swagger" target="_blank"><i class="fas fa-code"></i> API Docs</a>
-                    </li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Home/Paller"><i class="fas fa-pallet"></i> Paller</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Home/Elementer"><i class="fas fa-door-open"></i> Elementer</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Home/Optimering"><i class="fas fa-magic"></i> Palleoptimering</a>
+                        </li>
+                        @if (User.IsInRole("SuperUser"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" href="/swagger" target="_blank"><i class="fas fa-code"></i> API</a>
+                            </li>
+                        }
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i> @User.Identity.Name
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><span class="dropdown-item-text"><small>@(User.IsInRole("SuperUser") ? "Super Bruger" : "Normal Bruger")</small></span></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" asp-controller="Account" asp-action="Logout" class="d-inline">
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt"></i> Log ud
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Account/Login"><i class="fas fa-sign-in-alt"></i> Log ind</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Account/Register"><i class="fas fa-user-plus"></i> Opret konto</a>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>

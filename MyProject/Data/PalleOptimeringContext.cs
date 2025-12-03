@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MyProject.Models;
 
@@ -6,7 +7,7 @@ namespace MyProject.Data
     /// <summary>
     /// Database context for palleoptimering systemet
     /// </summary>
-    public class PalleOptimeringContext : DbContext
+    public class PalleOptimeringContext : IdentityDbContext<ApplicationUser>
     {
         public PalleOptimeringContext(DbContextOptions<PalleOptimeringContext> options)
             : base(options)
