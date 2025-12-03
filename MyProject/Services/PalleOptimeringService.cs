@@ -80,7 +80,7 @@ namespace MyProject.Services
                 Pakkeplan = pakkeplan
             };
 
-            var pakkeplanPaller = await KorOptimeringAlgoritme(optimeringContext);
+            var pakkeplanPaller = KorOptimeringAlgoritme(optimeringContext);
 
             // Gem resultatet
             pakkeplan.AntalPaller = pakkeplanPaller.Count;
@@ -116,7 +116,7 @@ namespace MyProject.Services
             return resultat;
         }
 
-        private async Task<List<PakkeplanPalle>> KorOptimeringAlgoritme(OptimeringContext context)
+        private List<PakkeplanPalle> KorOptimeringAlgoritme(OptimeringContext context)
         {
             var pakkeplanPaller = new List<PakkeplanPalle>();
             var sorteringHelper = new ElementSorteringHelper(context.Settings);
