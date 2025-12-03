@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Models;
 using MyProject.Services;
 
 namespace MyProject.Controllers
 {
+    [Authorize(Roles = "SuperUser")]
     [ApiController]
     [Route("api/[controller]")]
     public class SettingsController : ControllerBase
