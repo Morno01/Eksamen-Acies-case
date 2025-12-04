@@ -66,18 +66,19 @@ var app = builder.Build();
 
 // Log database connection info
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
+var appLogger = app.Services.GetRequiredService<ILogger<Program>>();
 if (connectionString?.Contains("bmm-server.database.windows.net") == true)
 {
-    logger.LogInformation("✓ Forbundet til Azure SQL Database: bmm-server.database.windows.net");
+    appLogger.LogInformation("✓ Forbundet til Azure SQL Database: bmm-server.database.windows.net");
 }
 else if (connectionString?.Contains("localdb") == true)
 {
-    logger.LogInformation("⚠ Forbundet til LocalDB (ikke Azure)");
+    appLogger.LogInformation("⚠ Forbundet til LocalDB (ikke Azure)");
 }
 else
 {
-    logger.LogInformation("Database connection string: {ConnectionString}", connectionString?.Substring(0, Math.Min(50, connectionString.Length ?? 0)));
+    var displayLength = connectionString != null ? Math.Min(50, connectionString.Length) : 0;
+    appLogger.LogInformation("Database connection string: {ConnectionString}", connectionString?.Substring(0, displayLength));
 }
 
 // Configure the HTTP request pipeline
