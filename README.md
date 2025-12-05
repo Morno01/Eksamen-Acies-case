@@ -5,6 +5,7 @@ Et ASP.NET Core webapplikation til optimering af pallepakning af døre og vindue
 ## Indhold
 
 - [Oversigt](#oversigt)
+- [📚 Teknisk Dokumentation](#-teknisk-dokumentation)
 - [Teknologier](#teknologier)
 - [Funktionalitet](#funktionalitet)
 - [Installation](#installation)
@@ -25,6 +26,33 @@ Dette system løser Acies' behov for automatisk optimering af pallepakning. Når
 - Konfigurérbare regler for pakning
 - REST API til integration med eksisterende systemer
 - Omfattende unit tests
+
+## 📚 Teknisk Dokumentation
+
+Detaljeret teknisk dokumentation findes i [`docs/`](./docs/) mappen:
+
+### [Klassediagram](./docs/klassediagram.md)
+Komplet oversigt over systemets MVC arkitektur:
+- Controllers (API endpoints)
+- Services (forretningslogik)
+- Models (datastrukturer)
+- Dependencies og relationer
+
+### [ER-Diagram](./docs/er-diagram.md)
+Database struktur og relationer:
+- Alle tabeller og kolonner
+- Foreign key relationer
+- Kardinalitet (one-to-many, many-to-many)
+- Constraints og indekser
+
+### [Arkitektur Oversigt](./docs/README.md)
+- System arkitektur diagram
+- Workflow beskrivelse
+- Roller og sikkerhed
+- Seed data
+- Naming conventions
+
+**Se diagrammerne direkte i GitHub** - Diagrammerne bruger Mermaid format og renderes automatisk.
 
 ## Teknologier
 
