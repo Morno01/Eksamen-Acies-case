@@ -21,6 +21,7 @@ namespace MyProject.Controllers
         /// Hent alle elementer
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<IEnumerable<Element>>> GetAlleElementer()
         {
             var elementer = await _elementService.GetAlleElementer();
@@ -31,6 +32,7 @@ namespace MyProject.Controllers
         /// Hent et specifikt element
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<Element>> GetElement(int id)
         {
             var element = await _elementService.GetElement(id);

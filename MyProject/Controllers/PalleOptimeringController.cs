@@ -42,6 +42,7 @@ namespace MyProject.Controllers
         /// Hent alle pakkeplaner
         /// </summary>
         [HttpGet("pakkeplaner")]
+        [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult> GetAllePakkeplaner()
         {
             var pakkeplaner = await _optimeringService.GetAllePakkeplaner();
@@ -52,6 +53,7 @@ namespace MyProject.Controllers
         /// Hent en specifik pakkeplan
         /// </summary>
         [HttpGet("pakkeplaner/{id}")]
+        [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult> GetPakkeplan(int id)
         {
             var pakkeplan = await _optimeringService.GetPakkeplan(id);

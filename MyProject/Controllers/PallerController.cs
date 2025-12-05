@@ -21,6 +21,7 @@ namespace MyProject.Controllers
         /// Hent alle paller
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<IEnumerable<Palle>>> GetAllePaller()
         {
             var paller = await _palleService.GetAllePaller();
@@ -31,6 +32,7 @@ namespace MyProject.Controllers
         /// Hent alle aktive paller
         /// </summary>
         [HttpGet("aktive")]
+        [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<IEnumerable<Palle>>> GetAlleAktivePaller()
         {
             var paller = await _palleService.GetAlleAktivePaller();
@@ -41,6 +43,7 @@ namespace MyProject.Controllers
         /// Hent en specifik palle
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<Palle>> GetPalle(int id)
         {
             var palle = await _palleService.GetPalle(id);
