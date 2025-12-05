@@ -64,6 +64,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PalleOptimeringContext>();
+    db.Database.Migrate();
+}
+
+
 // Log database connection info
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var appLogger = app.Services.GetRequiredService<ILogger<Program>>();
