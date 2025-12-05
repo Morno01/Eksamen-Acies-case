@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MyProject.Models;
 
 namespace MyProject.Data
@@ -9,6 +10,7 @@ namespace MyProject.Data
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var context = serviceProvider.GetRequiredService<PalleOptimeringContext>();
 
             // Opret roller
             string[] roleNames = { "SuperUser", "NormalUser" };
@@ -62,6 +64,69 @@ namespace MyProject.Data
                 {
                     await userManager.AddToRoleAsync(normalUser, "NormalUser");
                 }
+            }
+
+            // Seed test elementer hvis der ikke er nogen
+            if (!await context.Elementer.AnyAsync())
+            {
+                var elementer = new List<Element>
+                {
+                    new Element
+                    {
+                        Reference = "DØR-001",
+                        Maerke = "Rationel",
+                        Serie = "Premium",
+                        Hoejde = 2100,
+                        Bredde = 900,
+                        Dybde = 100,
+                        Vaegt = 45.5m,
+                        ErSpecialelement = false,
+                        ErGeometrielement = false,
+                        RotationsRegel = "Ja"
+                    },
+                    new Element
+                    {
+                        Reference = "VIND-001",
+                        Maerke = "Rationel",
+                        Serie = "Premium",
+                        Hoejde = 1200,
+                        Bredde = 1200,
+                        Dybde = 100,
+                        Vaegt = 35.0m,
+                        ErSpecialelement = false,
+                        ErGeometrielement = false,
+                        RotationsRegel = "Ja"
+                    },
+                    new Element
+                    {
+                        Reference = "DØR-002",
+                        Maerke = "Rationel",
+                        Serie = "Standard",
+                        Hoejde = 2000,
+                        Bredde = 800,
+                        Dybde = 100,
+                        Vaegt = 40.0m,
+                        ErSpecialelement = false,
+                        ErGeometrielement = false,
+                        RotationsRegel = "Ja"
+                    },
+                    new Element
+                    {
+                        Reference = "SPEC-001",
+                        Maerke = "Special",
+                        Serie = "Custom",
+                        Hoejde = 2500,
+                        Bredde = 1500,
+                        Dybde = 150,
+                        Vaegt = 85.0m,
+                        ErSpecialelement = true,
+                        ErGeometrielement = true,
+                        RotationsRegel = "Nej"
+                    }
+                };
+
+                await context.Elementer.AddRangeAsync(elementer);
+                await context.SaveChangesAsync();
             }
         }
     }
