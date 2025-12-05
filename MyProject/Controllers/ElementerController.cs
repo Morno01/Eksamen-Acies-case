@@ -11,10 +11,12 @@ namespace MyProject.Controllers
     public class ElementerController : ControllerBase
     {
         private readonly IElementService _elementService;
+        private readonly ILogger<ElementerController> _logger;
 
-        public ElementerController(IElementService elementService)
+        public ElementerController(IElementService elementService, ILogger<ElementerController> logger)
         {
             _elementService = elementService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -24,7 +26,9 @@ namespace MyProject.Controllers
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<IEnumerable<Element>>> GetAlleElementer()
         {
+            _logger.LogInformation("🔍 GetAlleElementer kaldt af bruger: {User}", User.Identity?.Name);
             var elementer = await _elementService.GetAlleElementer();
+            _logger.LogInformation("📊 Returnerer {Count} elementer", elementer.Count());
             return Ok(elementer);
         }
 

@@ -11,6 +11,9 @@ namespace MyProject.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var context = serviceProvider.GetRequiredService<PalleOptimeringContext>();
+            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+            logger.LogInformation("🔧 DbInitializer startet...");
 
             // Opret roller
             string[] roleNames = { "SuperUser", "NormalUser" };
@@ -67,8 +70,13 @@ namespace MyProject.Data
             }
 
             // Seed test elementer hvis der ikke er nogen
+            logger.LogInformation("📦 Tjekker om der er elementer i databasen...");
+            var existingCount = await context.Elementer.CountAsync();
+            logger.LogInformation($"📊 Fandt {existingCount} eksisterende elementer");
+
             if (!await context.Elementer.AnyAsync())
             {
+                logger.LogInformation("➕ Indsætter test elementer...");
                 var elementer = new List<Element>
                 {
                     new Element
@@ -127,7 +135,14 @@ namespace MyProject.Data
 
                 await context.Elementer.AddRangeAsync(elementer);
                 await context.SaveChangesAsync();
+                logger.LogInformation($"✓ Indsat {elementer.Count} test elementer");
             }
+            else
+            {
+                logger.LogInformation("ℹ️ Elementer findes allerede i databasen - springer seeding over");
+            }
+
+            logger.LogInformation("✓ DbInitializer færdig");
         }
     }
 }

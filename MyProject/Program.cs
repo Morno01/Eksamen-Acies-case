@@ -66,8 +66,21 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var db = scope.ServiceProvider.GetRequiredService<PalleOptimeringContext>();
+
+    logger.LogInformation("🔄 Kører database migrations...");
     db.Database.Migrate();
+    logger.LogInformation("✓ Database migrations kørt succesfuldt");
+
+    // Log antal elementer i databasen
+    var elementCount = db.Elementer.Count();
+    logger.LogInformation($"📊 Antal elementer i database: {elementCount}");
+
+    if (elementCount == 0)
+    {
+        logger.LogWarning("⚠️ Ingen elementer fundet i database - der kan være et problem med seed data");
+    }
 }
 
 
