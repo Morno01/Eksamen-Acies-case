@@ -108,5 +108,67 @@ namespace MyProject.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Force seed test elementer (kun til debugging)
+        /// </summary>
+        [HttpPost("force-seed")]
+        [Authorize(Roles = "SuperUser")]
+        public async Task<ActionResult> ForceSeedElementer()
+        {
+            _logger.LogWarning("⚠️ Force seed elementer kaldt af: {User}", User.Identity?.Name);
+
+            var testElementer = new List<Element>
+            {
+                new Element
+                {
+                    Reference = "TEST-DØR-001",
+                    Type = "Dør",
+                    Serie = "Premium",
+                    Hoejde = 2100,
+                    Bredde = 900,
+                    Dybde = 100,
+                    Vaegt = 45.5m,
+                    ErSpecialelement = false,
+                    ErGeometrielement = false,
+                    RotationsRegel = "Ja"
+                },
+                new Element
+                {
+                    Reference = "TEST-VIND-001",
+                    Type = "Vindue",
+                    Serie = "Premium",
+                    Hoejde = 1200,
+                    Bredde = 1200,
+                    Dybde = 100,
+                    Vaegt = 35.0m,
+                    ErSpecialelement = false,
+                    ErGeometrielement = false,
+                    RotationsRegel = "Ja"
+                },
+                new Element
+                {
+                    Reference = "TEST-DØR-002",
+                    Type = "Dør",
+                    Serie = "Standard",
+                    Hoejde = 2000,
+                    Bredde = 800,
+                    Dybde = 100,
+                    Vaegt = 40.0m,
+                    ErSpecialelement = false,
+                    ErGeometrielement = false,
+                    RotationsRegel = "Ja"
+                }
+            };
+
+            var oprettedeElementer = await _elementService.OpretFlereElementer(testElementer);
+            _logger.LogInformation("✓ Force seeded {Count} test elementer", testElementer.Count);
+
+            return Ok(new
+            {
+                message = $"Oprettet {testElementer.Count} test elementer",
+                elementer = oprettedeElementer
+            });
+        }
     }
 }
