@@ -151,8 +151,22 @@
             loading.style.display = 'block';
 
             try {
+                console.log('🔍 Henter elementer fra:', `${API_BASE}/api/elementer`);
                 const response = await fetch(`${API_BASE}/api/elementer`);
+                console.log('📡 Response status:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API fejl:', errorText);
+                    container.innerHTML = `<div class="alert alert-danger">
+                        <strong>API Fejl (${response.status}):</strong><br>
+                        ${errorText || response.statusText}
+                    </div>`;
+                    return;
+                }
+
                 const elementer = await response.json();
+                console.log('📦 Modtaget elementer:', elementer.length, elementer);
 
                 if (elementer.length === 0) {
                     container.innerHTML = '<div class="alert alert-info">Ingen elementer oprettet endnu</div>';
@@ -188,7 +202,12 @@
                 container.innerHTML = html;
 
             } catch (error) {
-                container.innerHTML = `<div class="alert alert-danger">Fejl: ${error.message}</div>`;
+                console.error('❌ JavaScript fejl:', error);
+                container.innerHTML = `<div class="alert alert-danger">
+                    <strong>Fejl ved indlæsning:</strong><br>
+                    ${error.message}<br><br>
+                    <small>Se browser console (F12) for flere detaljer</small>
+                </div>`;
             } finally {
                 loading.style.display = 'none';
             }
