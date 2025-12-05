@@ -44,6 +44,7 @@ namespace MyProject.Controllers
         /// Opret et nyt element
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Element>> OpretElement([FromBody] Element element)
         {
             if (!ModelState.IsValid)
@@ -57,6 +58,7 @@ namespace MyProject.Controllers
         /// Opret flere elementer på én gang
         /// </summary>
         [HttpPost("bulk")]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<IEnumerable<Element>>> OpretFlereElementer([FromBody] IEnumerable<Element> elementer)
         {
             if (!ModelState.IsValid)
@@ -70,6 +72,7 @@ namespace MyProject.Controllers
         /// Opdater et eksisterende element
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Element>> OpdaterElement(int id, [FromBody] Element element)
         {
             if (id != element.Id)
@@ -90,6 +93,7 @@ namespace MyProject.Controllers
         /// Slet et element
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult> SletElement(int id)
         {
             var resultat = await _elementService.SletElement(id);

@@ -21,6 +21,7 @@ namespace MyProject.Controllers
         /// Generer en pakkeplan baseret på elementer
         /// </summary>
         [HttpPost("generer")]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<PakkeplanResultat>> GenererPakkeplan([FromBody] PakkeplanRequest request)
         {
             if (!ModelState.IsValid)

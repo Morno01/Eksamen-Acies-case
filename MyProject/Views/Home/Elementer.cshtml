@@ -10,6 +10,8 @@
 </div>
 
 <div class="row">
+    @if (User.IsInRole("SuperUser"))
+    {
     <div class="col-lg-5">
         <div class="card">
             <div class="card-header">
@@ -80,8 +82,9 @@
             </div>
         </div>
     </div>
+    }
 
-    <div class="col-lg-7">
+    <div class="@(User.IsInRole("SuperUser") ? "col-lg-7" : "col-12")">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><i class="fas fa-list"></i> Alle Elementer</h4>

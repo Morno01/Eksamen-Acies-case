@@ -31,6 +31,7 @@ namespace MyProject.Controllers
             return View();
         }
 
+        [Authorize(Roles = "SuperUser")]
         public IActionResult Settings()
         {
             return View();

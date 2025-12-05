@@ -54,6 +54,7 @@ namespace MyProject.Controllers
         /// Opret en ny palle
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Palle>> OpretPalle([FromBody] Palle palle)
         {
             if (!ModelState.IsValid)
@@ -67,6 +68,7 @@ namespace MyProject.Controllers
         /// Opdater en eksisterende palle
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Palle>> OpdaterPalle(int id, [FromBody] Palle palle)
         {
             if (id != palle.Id)
@@ -87,6 +89,7 @@ namespace MyProject.Controllers
         /// Slet en palle
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult> SletPalle(int id)
         {
             var resultat = await _palleService.SletPalle(id);
