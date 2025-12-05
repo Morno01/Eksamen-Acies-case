@@ -74,7 +74,7 @@ namespace MyProject.Data
                     new Element
                     {
                         Reference = "DØR-001",
-                        Maerke = "Rationel",
+                        Type = "Dør",
                         Serie = "Premium",
                         Hoejde = 2100,
                         Bredde = 900,
@@ -87,7 +87,7 @@ namespace MyProject.Data
                     new Element
                     {
                         Reference = "VIND-001",
-                        Maerke = "Rationel",
+                        Type = "Vindue",
                         Serie = "Premium",
                         Hoejde = 1200,
                         Bredde = 1200,
@@ -100,7 +100,7 @@ namespace MyProject.Data
                     new Element
                     {
                         Reference = "DØR-002",
-                        Maerke = "Rationel",
+                        Type = "Dør",
                         Serie = "Standard",
                         Hoejde = 2000,
                         Bredde = 800,
@@ -113,7 +113,7 @@ namespace MyProject.Data
                     new Element
                     {
                         Reference = "SPEC-001",
-                        Maerke = "Special",
+                        Type = "Special",
                         Serie = "Custom",
                         Hoejde = 2500,
                         Bredde = 1500,
