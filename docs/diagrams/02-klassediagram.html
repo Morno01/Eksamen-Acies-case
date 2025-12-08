@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Klassediagram - PalleOptimering System</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                fontSize: '16px'
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: white;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .mermaid {
+            text-align: center;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Klassediagram - PalleOptimering System</h1>
+    <div class="mermaid">
+classDiagram
+    %% BRUGER
+    class ApplicationUser {
+        +string Id
+        +string UserName
+        +string Email
+        +string FullName
+        +DateTime CreatedAt
+        +ICollection~IdentityRole~ Roles
+    }
+
+    %% MODELLER
+    class Palle {
+        +int Id
+        +string PalleBeskrivelse
+        +int Laengde
+        +int Bredde
+        +int Hoejde
+        +int LuftMellemElementer
+        +decimal MaksVaegt
+        +int MaksHoejde
+        +bool Aktiv
+    }
+
+    class Element {
+        +int Id
+        +string Reference
+        +string Type
+        +int Hoejde
+        +int Bredde
+        +int Dybde
+        +decimal Vaegt
+        +string RotationsRegel
+        +bool ErGeometrielement
+    }
+
+    class PalleOptimeringSettings {
+        +int Id
+        +string Navn
+        +int MaksLag
+        +decimal TilladVendeOpTilMaksKg
+        +bool Aktiv
+    }
+
+    class Pakkeplan {
+        +int Id
+        +string OrdreReference
+        +int AntalPaller
+        +int AntalElementer
+    }
+
+    class PakkeplanPalle {
+        +int Id
+        +int PalleNummer
+        +decimal SamletVaegt
+        +int AntalLag
+    }
+
+    class PakkeplanElement {
+        +int Id
+        +int Lag
+        +int Plads
+        +bool ErRoteret
+    }
+
+    %% SERVICES
+    class PalleService {
+        +GetAllePaller() [Both]
+        +GetPalle(id) [Both]
+        +OpretPalle(palle) [SuperUser]
+        +OpdaterPalle(palle) [SuperUser]
+        +SletPalle(id) [SuperUser]
+    }
+
+    class ElementService {
+        +GetAlleElementer() [Both]
+        +GetElement(id) [Both]
+        +OpretElement(element) [SuperUser]
+        +OpdaterElement(element) [SuperUser]
+        +SletElement(id) [SuperUser]
+    }
+
+    class PalleOptimeringService {
+        +GenererPakkeplan(request) [Both]
+        +GetPakkeplan(id) [Both]
+        +GetAllePakkeplaner() [Both]
+    }
+
+    class PalleOptimeringSettingsService {
+        +GetAlleSettings() [Both]
+        +GetAktivSettings() [Both]
+        +OpretSettings(settings) [SuperUser]
+        +OpdaterSettings(settings) [SuperUser]
+    }
+
+    %% RELATIONER - Pakkeplan struktur
+    Pakkeplan "1" --> "0..*" PakkeplanPalle
+    PakkeplanPalle "1" --> "0..*" PakkeplanElement
+    PakkeplanPalle --> Palle
+    PakkeplanElement --> Element
+    Pakkeplan --> PalleOptimeringSettings
+
+    %% RELATIONER - Services til modeller
+    PalleService ..> Palle
+    ElementService ..> Element
+    PalleOptimeringService ..> Pakkeplan
+    PalleOptimeringSettingsService ..> PalleOptimeringSettings
+
+    %% RELATIONER - Bruger adgang
+    ApplicationUser --> PalleService : NormalUser=read, SuperUser=CRUD
+    ApplicationUser --> ElementService : NormalUser=read, SuperUser=CRUD
+    ApplicationUser --> PalleOptimeringService : Begge kan bruge
+    ApplicationUser --> PalleOptimeringSettingsService : NormalUser=read, SuperUser=CRUD
+    </div>
+</body>
+</html>

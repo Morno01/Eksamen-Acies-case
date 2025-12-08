@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sekvensdiagram - PalleOptimering System</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                fontSize: '14px'
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: white;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .mermaid {
+            text-align: center;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sekvensdiagram - PalleOptimering System</h1>
+    <div class="mermaid">
+sequenceDiagram
+    actor Bruger
+    participant UI
+    participant BrugerService as AccountController<br/>(BrugerService)
+    participant PalleService
+    participant ElementService
+    participant OptimeringService as PalleOptimeringService<br/>(Regel + Placering)
+    participant Database
+
+    %% ===== LOGIN FLOW =====
+    Note over Bruger,Database: LOGIN
+    Bruger->>UI: Indtast brugernavn & password
+    UI->>BrugerService: login(brugernavn, password)
+    BrugerService->>Database: SELECT * FROM AspNetUsers WHERE...
+    Database-->>BrugerService: Bruger + rolle
+    BrugerService-->>UI: Login OK + rolle
+    UI-->>Bruger: Anmod om palleoversigt
+
+    %% ===== VIS PALLER =====
+    Note over Bruger,Database: VIS PALLER
+    Bruger->>UI: Vis paller
+    UI->>PalleService: hentAllePaller()
+    PalleService->>Database: SELECT * FROM Paller
+    Database-->>PalleService: Palleliste
+    PalleService-->>UI: Palleliste
+    UI-->>Bruger: Vis paller
+
+    %% ===== OPRET NY PALLE (kun SuperBruger) =====
+    Note over Bruger,Database: OPRET NY PALLE (inkl. regler)
+    Bruger->>UI: Opret ny palle
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperBruger
+    UI-->>Bruger: Vis palle formular
+    Bruger->>UI: Udfyld data:<br/>- Beskrivelse, dimensioner<br/>- LuftMellemElementer (regel)<br/>- MaksVaegt, MaksHoejde
+    UI->>PalleService: opretPalle(palle)
+    Note right of PalleService: Palle inkluderer<br/>LuftMellemElementer<br/>(mellemrumsregel)
+    PalleService->>Database: INSERT INTO Paller<br/>(inkl. alle properties)
+    Database-->>PalleService: Palle.Id
+    PalleService-->>UI: Palle oprettet
+    UI-->>Bruger: Palle oprettet med regler
+
+    %% ===== REDIGER PALLE (kun SuperBruger) =====
+    Note over Bruger,Database: REDIGER PALLE
+    Bruger->>UI: Rediger palle
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperBruger
+    UI->>PalleService: hentPalle(palleId)
+    PalleService->>Database: SELECT * FROM Paller WHERE Id = ?
+    Database-->>PalleService: Palle-data
+    PalleService-->>UI: Palle-data
+    UI-->>Bruger: Vis palle formular
+
+    Bruger->>UI: Ændre palle-data<br/>(inkl. regler)
+    UI->>PalleService: opdaterPalle(palle)
+    PalleService->>Database: UPDATE Paller SET ...
+    Database-->>PalleService: OK
+    PalleService-->>UI: Palle opdateret
+    UI-->>Bruger: Palle gemt
+
+    %% ===== OPRET ELEMENT =====
+    Note over Bruger,Database: OPRET ELEMENT (inkl. regler)
+    Bruger->>UI: Opret element
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperBruger
+    UI-->>Bruger: Vis element formular
+    Bruger->>UI: Udfyld data:<br/>- Dimensioner, vægt<br/>- RotationsRegel (Nej/Ja/Skal)<br/>- ErGeometrielement (stabling)
+    UI->>ElementService: opretElement(element)
+    Note right of ElementService: Element inkluderer<br/>RotationsRegel og<br/>ErGeometrielement
+    ElementService->>Database: INSERT INTO Elementer<br/>(inkl. alle properties)
+    Database-->>ElementService: Element.Id
+    ElementService-->>UI: Element oprettet
+    UI-->>Bruger: Element oprettet med regler
+
+    %% ===== ÆNDRE REGLER PÅ ELEMENT =====
+    Note over Bruger,Database: ÆNDRE REGLER (element)
+    Bruger->>UI: Rediger element regler
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperBruger
+    UI->>ElementService: hentElement(elementId)
+    ElementService->>Database: SELECT * FROM Elementer WHERE Id = ?
+    Database-->>ElementService: Element data
+    ElementService-->>UI: Element data
+    UI-->>Bruger: Vis formular
+
+    Bruger->>UI: Ændre regler:<br/>- RotationsRegel: Ja → Skal<br/>- ErGeometrielement: false → true
+    UI->>ElementService: opdaterElement(element)
+    ElementService->>Database: UPDATE Elementer SET<br/>RotationsRegel='Skal',<br/>ErGeometrielement=true<br/>WHERE Id = ?
+    Database-->>ElementService: OK
+    ElementService-->>UI: Element opdateret
+    UI-->>Bruger: Regler ændret
+
+    %% ===== ÆNDRE REGLER PÅ PALLE =====
+    Note over Bruger,Database: ÆNDRE REGLER (palle)
+    Bruger->>UI: Rediger palle regler
+    UI->>PalleService: hentPalle(palleId)
+    PalleService->>Database: SELECT * FROM Paller WHERE Id = ?
+    Database-->>PalleService: Palle data
+    PalleService-->>UI: Palle data
+    UI-->>Bruger: Vis formular
+
+    Bruger->>UI: Ændre LuftMellemElementer:<br/>10mm → 20mm
+    UI->>PalleService: opdaterPalle(palle)
+    PalleService->>Database: UPDATE Paller SET<br/>LuftMellemElementer=20<br/>WHERE Id = ?
+    Database-->>PalleService: OK
+    PalleService-->>UI: Palle opdateret
+    UI-->>Bruger: Regel ændret
+
+    %% ===== GENERER PAKKEPLAN =====
+    Note over Bruger,Database: GENERER PAKKEPLAN
+    Bruger->>UI: Vælg elementer + klik generer
+    UI->>OptimeringService: genererPakkeplan(elementIds)
+
+    OptimeringService->>Database: SELECT * FROM Elementer WHERE Id IN (...)
+    Database-->>OptimeringService: Elementer (inkl. RotationsRegel)
+
+    OptimeringService->>Database: SELECT * FROM Paller WHERE Aktiv = true
+    Database-->>OptimeringService: Aktive paller (inkl. LuftMellemElementer)
+
+    OptimeringService->>Database: SELECT * FROM PalleOptimeringSettings
+    Database-->>OptimeringService: Settings (MaksLag, vægtgrænser)
+
+    Note right of OptimeringService: Anvender regler:<br/>- Rotationsregel fra Element<br/>- Mellemrumsregel fra Palle<br/>- Stablingsregel fra Element<br/>- Settings parametre
+
+    OptimeringService->>OptimeringService: Kør optimeringsalgoritme
+
+    OptimeringService->>Database: INSERT INTO Pakkeplaner
+    Database-->>OptimeringService: Pakkeplan.Id
+
+    OptimeringService->>Database: INSERT INTO PakkeplanPaller
+    Database-->>OptimeringService: PakkeplanPalle.Id
+
+    OptimeringService->>Database: INSERT INTO PakkeplanElementer<br/>(lag, plads, roteret)
+    Database-->>OptimeringService: OK
+
+    OptimeringService-->>UI: Pakkeplan genereret
+    UI-->>Bruger: Vis pakkeplan resultat
+    </div>
+</body>
+</html>
