@@ -1,242 +1,167 @@
-# Sekvensdiagrammer - PalleOptimering System
+# Sekvensdiagram - PalleOptimering System
 
-Dette dokument viser de vigtigste brugerflows i palleoptimering systemet.
-
-## 1. Login Flow
+Dette diagram viser de vigtigste brugerflows gennem systemet, baseret på det oprindelige design.
 
 ```mermaid
 sequenceDiagram
     actor Bruger
-    participant UI as Web Browser
-    participant AC as AccountController
-    participant SM as SignInManager
-    participant UM as UserManager
-    participant DB as Database
+    participant UI
+    participant BrugerService as AccountController<br/>(BrugerService)
+    participant PalleService
+    participant RegelService as PalleOptimeringService<br/>(RegelService)
+    participant PlaceringService as PalleOptimeringService<br/>(PlaceringService)
+    participant Database
 
+    %% ===== LOGIN FLOW =====
+    Note over Bruger,Database: LOGIN
     Bruger->>UI: Indtast brugernavn & password
-    UI->>AC: POST /Account/Login
-    AC->>AC: Valider ModelState
-    AC->>SM: PasswordSignInAsync(email, password)
-    SM->>DB: Hent bruger + password hash
-    DB-->>SM: ApplicationUser + hash
-    SM->>SM: Verificer password
-    SM->>DB: Hent bruger roller
-    DB-->>SM: Roller (SuperUser/NormalUser)
-    SM-->>AC: SignInResult (Succeeded)
-    AC-->>UI: Redirect til Home
-    UI-->>Bruger: Vis palle oversigt
+    UI->>BrugerService: login(brugernavn, password)
+    BrugerService->>Database: SELECT * FROM Bruger WHERE...
+    Database-->>BrugerService: Bruger + rolle
+    BrugerService-->>UI: Login OK + rolle
+    UI-->>Bruger: Anmod om palleoversigt
+
+    %% ===== VIS PALLER =====
+    Note over Bruger,Database: VIS PALLER
+    Bruger->>UI: Vis paller
+    UI->>PalleService: hentAllePaller()
+    PalleService->>Database: SELECT * FROM Palle
+    Database-->>PalleService: Palleliste
+    PalleService-->>UI: Palleliste
+    UI-->>Bruger: Vis paller
+
+    %% ===== OPRET NY PALLE (kun SuperBruger) =====
+    Note over Bruger,Database: OPRET NY PALLE
+    Bruger->>UI: Opret ny palle
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = Superbruger
+    UI->>Bruger: Vis palle formular
+    Bruger->>UI: Udfyld data<br/>(beskrivelse, dimensioner, regler)
+    UI->>PalleService: opretPalle(palleId)
+    PalleService->>Database: INSERT INTO Palle
+    Database-->>PalleService: palleId
+    PalleService-->>UI: Palle oprettet
+    UI-->>Bruger: Palle oprettet
+
+    %% ===== TILFØJ REGLER TIL PALLE =====
+    Note over Bruger,Database: TILFØJ REGLER
+    Bruger->>UI: Tilføj regler til palle
+    UI->>RegelService: opretRotationsRegel(palleId, ...)
+    RegelService->>Database: INSERT INTO Rotations_regel
+    Database-->>RegelService: OK
+
+    UI->>RegelService: opretMellemrumsRegel(palleId, ...)
+    RegelService->>Database: INSERT INTO Mellemrums_regel
+    Database-->>RegelService: OK
+
+    UI->>RegelService: opretStablingsRegel(palleId, ...)
+    RegelService->>Database: INSERT INTO Stablings_regel
+    Database-->>RegelService: OK
+
+    RegelService-->>UI: Regler oprettet
+    UI-->>Bruger: Regler tilføjet
+
+    %% ===== REDIGER PALLE (kun SuperBruger) =====
+    Note over Bruger,Database: REDIGER PALLE
+    Bruger->>UI: Rediger palle
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = Superbruger
+    UI->>PalleService: hentPalle(palleId)
+    PalleService->>Database: SELECT * FROM Palle WHERE id = ?
+    Database-->>PalleService: Palle-data
+    PalleService-->>UI: Palle-data
+    UI-->>Bruger: Gem ændringer
+
+    Bruger->>UI: Ændre palle-data
+    UI->>PalleService: opdaterPalle(palleId, data)
+    PalleService->>Database: UPDATE Palle SET ...
+    Database-->>PalleService: OK
+    PalleService-->>UI: Palle opdateret
+    UI-->>Bruger: Palle gemt
+
+    %% ===== TILFØJ ELEMENT TIL PALLE =====
+    Note over Bruger,Database: GENERER PAKKEPLAN
+    Bruger->>UI: Tilføj element til palle
+    UI->>PlaceringService: tilføjPlacering(palleId, elementId, lag, roteret)
+    PlaceringService->>Database: INSERT INTO Placering ...
+    Database-->>PlaceringService: OK
+    PlaceringService-->>UI: Placering oprettet
+    UI-->>Bruger: Element placeret på palle<br/>Fuldt palle-setup færdigt
 ```
 
-## 2. Opret Pakkeplan Flow
+## Flow Beskrivelser
 
-```mermaid
-sequenceDiagram
-    actor Bruger
-    participant UI as Web Browser
-    participant POC as PalleOptimeringController
-    participant POS as PalleOptimeringService
-    participant PSS as PalleOptimeringSettingsService
-    participant PS as PalleService
-    participant ES as ElementService
-    participant DB as Database
+### 1. Login Flow
+- Bruger indtaster brugernavn og password
+- `AccountController` (BrugerService) validerer mod database
+- Returnerer bruger med rolle (NormalBruger eller SuperBruger)
+- UI viser palleoversigt baseret på rolle
 
-    Bruger->>UI: Vælg elementer + klik "Generer pakkeplan"
-    UI->>POC: POST /api/PalleOptimering/generer
-    Note over POC: PakkeplanRequest:<br/>- OrdreReference<br/>- ElementIds[]<br/>- SettingsId?
+### 2. Vis Paller
+- Både NormalBruger og SuperBruger kan se paller
+- `PalleService` henter alle paller fra database
+- UI viser palleliste
 
-    POC->>POC: Tjek bruger autorisation
-    POC->>POS: GenererPakkeplan(request)
+### 3. Opret Ny Palle (kun SuperBruger)
+- Systemet checker om brugeren er SuperBruger
+- Viser formular til at indtaste palle data
+- `PalleService` opretter palle i database
+- Returnerer palle ID
 
-    alt Settings ID angivet
-        POS->>PSS: GetSettings(settingsId)
-    else Brug standard settings
-        POS->>PSS: GetAktivSettings()
-    end
-    PSS->>DB: SELECT * FROM Settings WHERE...
-    DB-->>PSS: PalleOptimeringSettings
-    PSS-->>POS: Settings
+### 4. Tilføj Regler til Palle
+- SuperBruger kan tilføje regler til en palle
+- `PalleOptimeringService` (RegelService) håndterer:
+  - Rotationsregler (må element roteres?)
+  - Mellemrumsregler (afstand mellem elementer)
+  - Stablingsregler (må der stables ovenpå?)
+- Gemmes i database
 
-    POS->>DB: SELECT * FROM Elementer WHERE Id IN (...)
-    DB-->>POS: List<Element>
+**Note**: I den faktiske implementation er regler integreret i Palle og Element modellerne
 
-    POS->>PS: GetAlleAktivePaller()
-    PS->>DB: SELECT * FROM Paller WHERE Aktiv = true
-    DB-->>PS: List<Palle>
-    PS-->>POS: Aktive paller
+### 5. Rediger Palle (kun SuperBruger)
+- Systemet checker om brugeren er SuperBruger
+- `PalleService` henter eksisterende palle data
+- Bruger ændrer data
+- `PalleService` opdaterer palle i database
 
-    POS->>POS: Valider data (elementer, paller findes)
+### 6. Generer Pakkeplan (Tilføj Element til Palle)
+- Bruger vælger elementer og palle
+- `PalleOptimeringService` (PlaceringService) opretter placering
+- Beregner lag, position og rotation
+- Gemmer i database (Pakkeplan → PakkeplanPalle → PakkeplanElement)
 
-    alt Validation fejler
-        POS-->>POC: PakkeplanResultat (Status: Error)
-        POC-->>UI: BadRequest + fejlmeddelelse
-        UI-->>Bruger: Vis fejl
-    else Validation OK
-        POS->>DB: INSERT INTO Pakkeplaner
-        DB-->>POS: Pakkeplan.Id
+## Service Mapping
 
-        POS->>POS: Kør optimeringsalgoritme
-        Note over POS: - Sorter elementer<br/>- Find bedste paller<br/>- Placer elementer<br/>- Beregn vægt/højde
-
-        loop For hver palle i planen
-            POS->>DB: INSERT INTO PakkeplanPaller
-            DB-->>POS: PakkeplanPalle.Id
-
-            loop For hvert element på pallen
-                POS->>DB: INSERT INTO PakkeplanElementer
-                DB-->>POS: PakkeplanElement.Id
-            end
-        end
-
-        POS->>DB: UPDATE Pakkeplaner SET AntalPaller, AntalElementer
-        DB-->>POS: OK
-
-        POS-->>POC: PakkeplanResultat (Status: Success)
-        POC-->>UI: OK(pakkeplan)
-        UI-->>Bruger: Vis pakkeplan resultat
-    end
-```
-
-## 3. Administrer Paller Flow
-
-```mermaid
-sequenceDiagram
-    actor SuperUser as SuperUser (Admin)
-    participant UI as Web Browser
-    participant PC as PallerController
-    participant PS as PalleService
-    participant DB as Database
-
-    Note over SuperUser,DB: Hent alle paller
-    SuperUser->>UI: Gå til /Paller
-    UI->>PC: GET /api/Paller
-    PC->>PC: Autoriser (SuperUser eller NormalUser)
-    PC->>PS: GetAllePaller()
-    PS->>DB: SELECT * FROM Paller ORDER BY Sortering
-    DB-->>PS: List<Palle>
-    PS-->>PC: Paller
-    PC-->>UI: OK(paller)
-    UI-->>SuperUser: Vis palle liste
-
-    Note over SuperUser,DB: Opret ny palle
-    SuperUser->>UI: Udfyld formular + klik "Gem"
-    UI->>PC: POST /api/Paller
-    PC->>PC: Autoriser (kun SuperUser)
-    PC->>PS: OpretPalle(palle)
-    PS->>DB: INSERT INTO Paller
-    DB-->>PS: Palle.Id
-    PS-->>PC: Palle
-    PC-->>UI: Created(palle)
-    UI-->>SuperUser: Vis ny palle
-
-    Note over SuperUser,DB: Opdater palle
-    SuperUser->>UI: Ret palle + klik "Gem"
-    UI->>PC: PUT /api/Paller/{id}
-    PC->>PC: Autoriser (kun SuperUser)
-    PC->>PS: OpdaterPalle(palle)
-    PS->>DB: UPDATE Paller SET ... WHERE Id = {id}
-    DB-->>PS: OK
-    PS-->>PC: Palle
-    PC-->>UI: OK(palle)
-    UI-->>SuperUser: Vis opdateret palle
-```
-
-## 4. Administrer Elementer Flow
-
-```mermaid
-sequenceDiagram
-    actor Bruger
-    participant UI as Web Browser
-    participant EC as ElementerController
-    participant ES as ElementService
-    participant DB as Database
-
-    Note over Bruger,DB: Hent alle elementer
-    Bruger->>UI: Gå til /Elementer
-    UI->>EC: GET /api/Elementer
-    EC->>EC: Autoriser (SuperUser eller NormalUser)
-    EC->>ES: GetAlleElementer()
-    ES->>DB: SELECT * FROM Elementer
-    DB-->>ES: List<Element>
-    ES-->>EC: Elementer
-    EC-->>UI: OK(elementer)
-    UI-->>Bruger: Vis element liste med filter muligheder
-
-    Note over Bruger,DB: Opret flere elementer samtidig
-    Bruger->>UI: Upload CSV eller indtast multiple
-    UI->>EC: POST /api/Elementer/bulk
-    EC->>EC: Autoriser (SuperUser)
-    EC->>ES: OpretFlereElementer(elementer)
-    ES->>DB: INSERT INTO Elementer (bulk)
-    DB-->>ES: List<Element>
-    ES-->>EC: Elementer
-    EC-->>UI: Created(elementer)
-    UI-->>Bruger: Vis oprettede elementer
-```
-
-## 5. Administrer Settings Flow
-
-```mermaid
-sequenceDiagram
-    actor SuperUser as SuperUser (Admin)
-    participant UI as Web Browser
-    participant SC as SettingsController
-    participant PSS as PalleOptimeringSettingsService
-    participant DB as Database
-
-    Note over SuperUser,DB: Hent aktiv settings
-    SuperUser->>UI: Gå til /Settings
-    UI->>SC: GET /api/Settings/aktiv
-    SC->>SC: Autoriser (SuperUser eller NormalUser)
-    SC->>PSS: GetAktivSettings()
-    PSS->>DB: SELECT TOP 1 * FROM Settings WHERE Aktiv = true
-    DB-->>PSS: PalleOptimeringSettings
-    PSS-->>SC: Settings
-    SC-->>UI: OK(settings)
-    UI-->>SuperUser: Vis settings formular
-
-    Note over SuperUser,DB: Opdater settings
-    SuperUser->>UI: Ændre værdier + klik "Gem"
-    UI->>SC: PUT /api/Settings/{id}
-    SC->>SC: Autoriser (kun SuperUser)
-    SC->>PSS: OpdaterSettings(settings)
-    PSS->>DB: UPDATE Settings SET ... WHERE Id = {id}
-    DB-->>PSS: OK
-    PSS-->>SC: Settings
-    SC-->>UI: OK(settings)
-    UI-->>SuperUser: Vis opdateret settings
-```
+| Oprindeligt Diagram | Faktisk Implementation |
+|---------------------|------------------------|
+| BrugerService | `AccountController` + `SignInManager` |
+| PalleService | `PalleService` ✅ (match!) |
+| RegelService | `PalleOptimeringService` |
+| PlaceringService | `PalleOptimeringService` |
 
 ## Nøglepunkter
 
 ### Autorisation
-- Login flow: SignInManager håndterer authentication
-- Alle endpoints kræver `[Authorize]` attribute
-- SuperUser har fuld adgang
-- NormalUser har read-only adgang til de fleste endpoints
+- **NormalBruger**: Read-only adgang (kan kun se paller og elementer)
+- **SuperBruger**: Fuld adgang (kan oprette, redigere, slette)
+- Tjekkes via `[Authorize(Roles = "...")]` attributes
 
-### Service Layer Pattern
-- Controllers afhænger af service interfaces (ikke konkrete implementationer)
-- Services tilgår DbContext direkte (ingen repository lag)
-- Dependency injection bruges til at injicere services
+### Database Operationer
+- Alle services kommunikerer med database via Entity Framework Core
+- `PalleOptimeringContext` håndterer alle database operationer
+- Transactions håndteres automatisk af DbContext
 
-### Optimeringsalgoritme
-`PalleOptimeringService.GenererPakkeplan()` indeholder kompleks logik:
-1. Hent og valider input data
-2. Sorter elementer efter prioritet (settings)
-3. Find bedste palle for hvert element
-4. Placer elementer med rotation/lag logik
-5. Beregn vægt og højde
-6. Gem resultat i database
+### Regler i Praksis
+I den faktiske kode er reglerne integreret:
+- **Rotationsregel**: `Element.RotationsRegel` (Nej, Ja, Skal)
+- **Mellemrumsregel**: `Palle.LuftMellemElementer` (int i mm)
+- **Stablingsregel**: `Element.ErGeometrielement` (bool)
 
-### Fejlhåndtering
-- Services returnerer `null` ved "ikke fundet"
-- PakkeplanResultat indeholder `Status` og `Meddelelser[]`
-- Controllers returnerer korrekte HTTP status codes
+Men flowet i sekvensdiagrammet viser konceptuelt hvordan regler håndteres.
 
-## Forskelle fra oprindeligt diagram
-
-1. **ASP.NET Core Controllers**: I stedet for metoder på Bruger-klassen
-2. **Service interfaces**: Dependency injection pattern
-3. **DTOs**: PakkeplanRequest/PakkeplanResultat for API kommunikation
-4. **Ingen RegelService**: Regler håndteres direkte i PalleOptimeringService
-5. **Bulk operationer**: OpretFlereElementer() for efficiency
+### Placering/Pakkeplan
+"Tilføj element til palle" svarer til at generere en pakkeplan:
+1. Vælg elementer
+2. Kør optimeringsalgoritme
+3. Placer elementer på paller (lag, position, rotation)
+4. Gem i `Pakkeplan` → `PakkeplanPalle` → `PakkeplanElement`

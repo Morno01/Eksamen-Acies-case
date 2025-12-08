@@ -4,18 +4,43 @@ Dette diagram viser de vigtigste klasser og deres relationer.
 
 ```mermaid
 classDiagram
-    %% MODELS - Domæne klasser
+    %% BRUGER HIERARKI
     class Bruger {
+        <<abstract>>
         +int Id
         +string Brugernavn
         +string Password
         +string Rolle
         +sePaller()
-        +opretPalle()
-        +redigerPalle()
-        +administrerRegler()
+        +seElementer()
+        +genererPakkeplan()
     }
 
+    class NormalBruger {
+        +string Rolle = "NormalUser"
+        +sePaller()
+        +seElementer()
+        +genererPakkeplan()
+    }
+
+    class SuperBruger {
+        +string Rolle = "SuperUser"
+        +sePaller()
+        +opretPalle()
+        +redigerPalle()
+        +sletPalle()
+        +seElementer()
+        +opretElement()
+        +redigerElement()
+        +sletElement()
+        +administrerRegler()
+        +genererPakkeplan()
+    }
+
+    Bruger <|-- NormalBruger
+    Bruger <|-- SuperBruger
+
+    %% MODELS - Domæne klasser
     class Palle {
         +int Id
         +string Beskrivelse
@@ -39,6 +64,14 @@ classDiagram
         +decimal Vaegt
         +string RotationsRegel
         +bool ErGeometrielement
+    }
+
+    class PalleOptimeringSettings {
+        +int Id
+        +string Navn
+        +int MaksLag
+        +decimal TilladVendeOpTilMaksKg
+        +bool Aktiv
     }
 
     class Pakkeplan {
@@ -87,12 +120,19 @@ classDiagram
         +GetAllePakkeplaner()
     }
 
+    %% RELATIONER mellem bruger og domæne
+    SuperBruger "1" --> "0..*" Palle : opretter/redigerer
+    SuperBruger "1" --> "0..*" Element : opretter/redigerer
+    SuperBruger "1" --> "0..*" PalleOptimeringSettings : administrerer
+    NormalBruger --> Pakkeplan : kan se
+    SuperBruger --> Pakkeplan : kan se
+
     %% RELATIONER mellem modeller
-    Bruger "1" --> "0..*" Palle : opretter
     Pakkeplan "1" --> "1..*" PakkeplanPalle : indeholder
     PakkeplanPalle "1" --> "1..*" PakkeplanElement : indeholder
     PakkeplanPalle --> Palle : bruger
     PakkeplanElement --> Element : placerer
+    Pakkeplan --> PalleOptimeringSettings : bruger
 
     %% SERVICES bruger modeller
     PalleService ..> Palle : håndterer
@@ -100,44 +140,82 @@ classDiagram
     PalleOptimeringService ..> Pakkeplan : genererer
     PalleOptimeringService ..> PakkeplanPalle : opretter
     PalleOptimeringService ..> PakkeplanElement : placerer
+    PalleOptimeringService --> PalleOptimeringSettings : bruger
 ```
 
 ## Forklaring af Klasser
 
-### Domæne Modeller
+### Bruger Hierarki
 
-**Bruger**
-- Repræsenterer en bruger (SuperUser eller NormalUser)
-- Metoder repræsenterer de handlinger brugeren kan udføre
+**Bruger (Abstract)**
+- Basis klasse for alle brugertyper
+- Indeholder fælles properties og grundlæggende metoder
+
+**NormalBruger**
+- Read-only adgang til systemet
+- Kan se paller, elementer og generere pakkeplaner
+- Kan IKKE oprette, redigere eller slette
+
+**SuperBruger**
+- Fuld adgang til systemet (administrator)
+- Kan oprette, redigere og slette paller
+- Kan oprette, redigere og slette elementer
+- Kan administrere optimeringsregler (PalleOptimeringSettings)
+- Kan generere pakkeplaner
+
+### Domæne Modeller
 
 **Palle**
 - Definerer en palle-type med dimensioner og begrænsninger
-- `LuftMellemElementer`: Regel for afstand mellem elementer
+- `LuftMellemElementer`: Regel for afstand mellem elementer (mellemrumsregel)
+- SuperBruger kan administrere paller
 
 **Element**
 - Døre/vinduer der skal pakkes
 - `RotationsRegel`: Om elementet må/skal roteres (Nej, Ja, Skal)
 - `ErGeometrielement`: Om der må stables ovenpå (stablingsregel)
+- SuperBruger kan administrere elementer
+
+**PalleOptimeringSettings**
+- Indstillinger for optimeringsalgoritmen
+- `MaksLag`: Maksimalt antal lag på en palle
+- `TilladVendeOpTilMaksKg`: Vægtgrænse for rotation
+- Kun SuperBruger kan administrere
 
 **Pakkeplan → PakkeplanPalle → PakkeplanElement**
 - Hierarkisk struktur for en komplet pakkeplan
 - Én pakkeplan kan have flere paller
 - Hver palle kan have flere elementer i forskellige lag
+- Både NormalBruger og SuperBruger kan se pakkeplaner
 
 ### Services (Forretningslogik)
 
 **PalleService**
 - CRUD operationer for paller
 - Henter aktive paller til optimering
+- Bruges af SuperBruger til administration
 
 **ElementService**
 - CRUD operationer for elementer
 - Kan oprette mange elementer samtidig
+- Bruges af SuperBruger til administration
 
 **PalleOptimeringService**
 - Kerne-service der genererer pakkeplaner
 - Anvender rotations-, mellemrums- og stablingsregler
 - Finder den bedste palle for hvert element
+- Bruges af både NormalBruger og SuperBruger
+
+## Rettigheder
+
+| Handling | NormalBruger | SuperBruger |
+|----------|--------------|-------------|
+| Se paller | ✅ | ✅ |
+| Opret/rediger/slet paller | ❌ | ✅ |
+| Se elementer | ✅ | ✅ |
+| Opret/rediger/slet elementer | ❌ | ✅ |
+| Generer pakkeplan | ✅ | ✅ |
+| Administrer regler | ❌ | ✅ |
 
 ## Vigtige Noter
 
@@ -146,8 +224,9 @@ Reglerne er **integreret** i modellerne i stedet for separate klasser:
 - **Rotationsregel**: `Element.RotationsRegel` property
 - **Mellemrumsregel**: `Palle.LuftMellemElementer` property
 - **Stablingsregel**: `Element.ErGeometrielement` property
+- **Optimeringsregler**: `PalleOptimeringSettings` klasse
 
-### Service Pattern
-- Services håndterer al forretningslogik
-- Modeller er rene data-objekter (minus Bruger der har metoder i diagrammet)
-- I koden bruges ASP.NET Identity til brugerstyring
+### Rolle-baseret Adgangskontrol
+- I koden implementeres dette via ASP.NET Identity
+- `[Authorize(Roles = "SuperUser")]` på admin-endpoints
+- `[Authorize(Roles = "SuperUser,NormalUser")]` på read-endpoints
