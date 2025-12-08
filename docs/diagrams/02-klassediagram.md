@@ -4,31 +4,18 @@ Dette diagram viser systemets kernestruktur - simpelt og klart.
 
 ```mermaid
 classDiagram
-    %% BRUGER HIERARKI
+    %% BRUGER
     class Bruger {
-        <<abstract>>
         +int Id
         +string Brugernavn
+        +string Email
         +string Rolle
-    }
-
-    class NormalBruger {
         +sePaller()
         +seElementer()
         +genererPakkeplan()
     }
 
-    class SuperBruger {
-        +sePaller()
-        +opretPalle()
-        +redigerPalle()
-        +opretElement()
-        +administrerRegler()
-        +genererPakkeplan()
-    }
-
-    Bruger <|-- NormalBruger : arver
-    Bruger <|-- SuperBruger : arver
+    note for Bruger "Rolle: 'NormalUser' eller 'SuperUser'\nNormalUser = read-only\nSuperUser = fuld adgang"
 
     %% MODELS
     class Palle {
@@ -69,10 +56,9 @@ classDiagram
     }
 
     %% RELATIONER
-    SuperBruger --> Palle : opretter/redigerer
-    SuperBruger --> Element : opretter/redigerer
-    NormalBruger --> Pakkeplan : kan se
-    SuperBruger --> Pakkeplan : kan se
+    Bruger --> Palle : SuperUser: opretter/redigerer
+    Bruger --> Element : SuperUser: opretter/redigerer
+    Bruger --> Pakkeplan : begge roller: kan se
 
     Pakkeplan --> Palle : bruger
     Pakkeplan --> Element : indeholder
@@ -84,11 +70,13 @@ classDiagram
 
 ## Forklaring
 
-### Bruger Hierarki
+### Bruger
 
-- **Bruger (abstract)**: Basis klasse med fælles properties
-- **NormalBruger**: Read-only adgang - kan se og generere pakkeplaner
-- **SuperBruger**: Fuld adgang - kan oprette, redigere og administrere alt
+**Bruger** (ApplicationUser i koden)
+- ÉN klasse for alle brugere - ingen nedarvning
+- Rolle gemt som property: `"NormalUser"` eller `"SuperUser"`
+- **NormalUser rolle**: Read-only adgang (se paller/elementer, generer pakkeplan)
+- **SuperUser rolle**: Fuld adgang (oprette, redigere, administrere alt)
 
 ### Modeller
 
@@ -127,6 +115,7 @@ classDiagram
 - Stablingsregel: `Element.ErGeometrielement`
 
 **Implementation:**
-- ASP.NET Core med Identity
-- Role-based authorization
+- ASP.NET Core Identity: `ApplicationUser` extends `IdentityUser`
+- Roller håndteres via `AspNetRoles` og `AspNetUserRoles` tabeller
+- Role-based authorization: `[Authorize(Roles = "SuperUser")]`
 - Entity Framework Core
