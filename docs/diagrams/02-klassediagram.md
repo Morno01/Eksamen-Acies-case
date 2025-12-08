@@ -1,116 +1,276 @@
-# Klassediagram - PalleOptimering System
+# Klassediagram - PalleOptimering System (1:1 med koden)
 
-Dette diagram viser systemets kernestruktur - simpelt og klart.
+Dette diagram viser systemets faktiske struktur - præcis som implementeret i koden.
 
 ```mermaid
 classDiagram
-    class Bruger {
-        +int Id
-        +string Brugernavn
+    %% BRUGER (Identity)
+    class ApplicationUser {
+        +string Id
+        +string UserName
         +string Email
-        +string Rolle
-        +sePaller()
-        +seElementer()
-        +genererPakkeplan()
+        +string FullName
+        +DateTime CreatedAt
     }
+    note for ApplicationUser "Extends IdentityUser\nRoller håndteres via\nAspNetUserRoles tabel"
 
+    %% PALLE MODEL
     class Palle {
         +int Id
-        +string Beskrivelse
-        +int Dimensioner
+        +string PalleBeskrivelse
+        +int Laengde
+        +int Bredde
+        +int Hoejde
+        +string Pallegruppe
+        +string Palletype
+        +decimal Vaegt
+        +int MaksHoejde
+        +decimal MaksVaegt
+        +int Overmaal
         +int LuftMellemElementer
         +bool Aktiv
+        +int Sortering
     }
 
+    %% ELEMENT MODEL
     class Element {
         +int Id
+        +string Reference
         +string Type
-        +int Dimensioner
-        +string RotationsRegel
+        +string Serie
+        +int Hoejde
+        +int Bredde
+        +int Dybde
+        +decimal Vaegt
+        +bool ErSpecialelement
         +bool ErGeometrielement
+        +string RotationsRegel
+        +string KraeverPalletype
+        +int? MaksElementerPrPalle
     }
 
+    %% SETTINGS MODEL
+    class PalleOptimeringSettings {
+        +int Id
+        +string Navn
+        +int MaksLag
+        +decimal TilladVendeOpTilMaksKg
+        +decimal HoejdeBreddefaktor
+        +bool HoejdeBreddefaktorKunForEnkeltElementer
+        +int? TilladStablingOpTilMaksHoejdeInklPalle
+        +decimal? TilladStablingOpTilMaksElementVaegt
+        +int TillaegMonteringAfEndeplade
+        +bool Aktiv
+        +string SorteringsPrioritering
+        +bool PlacerLaengsteElementerYderst
+        +decimal? MaksBalanceVaerdi
+    }
+
+    %% PAKKEPLAN MODELLER
     class Pakkeplan {
         +int Id
         +string OrdreReference
+        +DateTime Oprettet
+        +int? SettingsId
+        +int AntalPaller
+        +int AntalElementer
     }
 
-    class PalleService {
+    class PakkeplanPalle {
+        +int Id
+        +int PakkeplanId
+        +int PalleNummer
+        +int PalleId
+        +int SamletHoejde
+        +decimal SamletVaegt
+        +int AntalLag
+    }
+
+    class PakkeplanElement {
+        +int Id
+        +int PakkeplanPalleId
+        +int ElementId
+        +int Lag
+        +int Plads
+        +bool ErRoteret
+        +int Sortering
+    }
+
+    %% SERVICES (Interfaces)
+    class IPalleService {
+        <<interface>>
         +GetAllePaller()
-        +OpretPalle()
-        +OpdaterPalle()
+        +GetAlleAktivePaller()
+        +GetPalle(id)
+        +OpretPalle(palle)
+        +OpdaterPalle(palle)
+        +SletPalle(id)
     }
 
-    class ElementService {
+    class IElementService {
+        <<interface>>
         +GetAlleElementer()
-        +OpretElement()
-        +OpdaterElement()
+        +GetElement(id)
+        +OpretElement(element)
+        +OpdaterElement(element)
+        +SletElement(id)
+        +OpretFlereElementer(elementer)
     }
 
-    class PalleOptimeringService {
-        +GenererPakkeplan()
+    class IPalleOptimeringService {
+        <<interface>>
+        +GenererPakkeplan(request)
+        +GetPakkeplan(id)
+        +GetAllePakkeplaner()
     }
 
-    Bruger --> Palle : opretter/redigerer
-    Bruger --> Element : opretter/redigerer
-    Bruger --> Pakkeplan : kan se
+    class IPalleOptimeringSettingsService {
+        <<interface>>
+        +GetAlleSettings()
+        +GetAktivSettings()
+        +GetSettings(id)
+        +OpretSettings(settings)
+        +OpdaterSettings(settings)
+    }
 
-    Pakkeplan --> Palle : bruger
-    Pakkeplan --> Element : indeholder
+    %% RELATIONER - Pakkeplan struktur
+    Pakkeplan "1" --> "0..*" PakkeplanPalle : indeholder
+    PakkeplanPalle "1" --> "0..*" PakkeplanElement : indeholder
+    PakkeplanPalle --> Palle : bruger
+    PakkeplanElement --> Element : placerer
+    Pakkeplan --> PalleOptimeringSettings : bruger
 
-    PalleService ..> Palle : håndterer
-    ElementService ..> Element : håndterer
-    PalleOptimeringService ..> Pakkeplan : genererer
+    %% RELATIONER - Services til modeller
+    IPalleService ..> Palle : håndterer
+    IElementService ..> Element : håndterer
+    IPalleOptimeringService ..> Pakkeplan : genererer
+    IPalleOptimeringSettingsService ..> PalleOptimeringSettings : håndterer
 ```
 
-## Bruger Roller
+## Model Forklaring
 
-**Bruger klasse** (ApplicationUser i koden)
-- Rolle property: `"NormalUser"` eller `"SuperUser"`
+### ApplicationUser (Bruger)
+- **Extends**: `IdentityUser` fra ASP.NET Core Identity
+- **Roller**: Håndteres via `AspNetRoles` og `AspNetUserRoles` tabeller
+  - "NormalUser" = Read-only
+  - "SuperUser" = Fuld adgang
+- **Ingen metoder**: Logik ligger i Controllers, ikke på bruger-objektet
 
-| Rolle | Rettigheder |
-|-------|-------------|
-| **NormalUser** | Read-only: Se paller, se elementer, generer pakkeplan |
-| **SuperUser** | Fuld adgang: Oprette, redigere, slette alt + administrere regler |
+### Palle
+**Dimensioner:**
+- `Laengde`, `Bredde`, `Hoejde` (mm)
+- `Vaegt` (kg)
 
-## Modeller
+**Begrænsninger:**
+- `MaksHoejde`, `MaksVaegt`
+- `Overmaal` (hvor meget må elementer rage ud)
 
-**Palle**
-- Definerer palle-type med dimensioner
-- `LuftMellemElementer`: Mellemrumsregel (integreret)
+**Regler (integreret):**
+- `LuftMellemElementer` (mm) - Mellemrumsregel
 
-**Element**
-- Døre/vinduer der skal pakkes
-- `RotationsRegel`: Rotationsregel (Nej/Ja/Skal) - integreret
-- `ErGeometrielement`: Stablingsregel - integreret
+**Metadata:**
+- `Pallegruppe` ("75", "80", "100")
+- `Palletype` ("Trae", "Alu", "Glasstel")
+- `Aktiv`, `Sortering`
 
-**Pakkeplan**
-- Resultat af pakkeplan-generering
-- Indeholder elementer placeret på paller
+### Element
+**Dimensioner:**
+- `Hoejde`, `Bredde`, `Dybde` (mm)
+- `Vaegt` (kg)
 
-## Services
+**Metadata:**
+- `Reference`, `Type`, `Serie`
 
-- **PalleService**: CRUD for paller (kun SuperUser kan oprette/redigere)
-- **ElementService**: CRUD for elementer (kun SuperUser kan oprette/redigere)
-- **PalleOptimeringService**: Genererer pakkeplaner (begge roller)
+**Regler (integreret):**
+- `RotationsRegel` ("Nej", "Ja", "Skal") - Rotationsregel
+- `ErGeometrielement` (bool) - Stablingsregel (må ikke stables ovenpå)
 
-## Ændre Regler
+**Special:**
+- `ErSpecialelement` (prioritering)
+- `KraeverPalletype` (kræver specifik palle)
+- `MaksElementerPrPalle` (f.eks. foldedøre)
 
-**SuperUser kan ændre regler:**
-- På Element: `RotationsRegel`, `ErGeometrielement`
-- På Palle: `LuftMellemElementer`
-- Ændres via redigering af element/palle (én UPDATE operation)
+### PalleOptimeringSettings
+**Globale optimeringsregler:**
+- `MaksLag` - Max antal lag på palle
+- `TilladVendeOpTilMaksKg` - Vægtgrænse for rotation
+- `HoejdeBreddefaktor` - Ratio for tipping-forebyggelse
+- `TilladStablingOpTilMaksHoejdeInklPalle` - Max højde for stabling
+- `TilladStablingOpTilMaksElementVaegt` - Max vægt for stabling
+- `SorteringsPrioritering` - Sorteringskriterier (kommasepareret)
+- `PlacerLaengsteElementerYderst` - Placeringslogik
+- `MaksBalanceVaerdi` - Balance tærskel
+
+### Pakkeplan → PakkeplanPalle → PakkeplanElement
+**Hierarkisk struktur:**
+1. **Pakkeplan** - Overordnet plan for en ordre
+   - Linker til `PalleOptimeringSettings` der blev brugt
+   - Samlet antal paller og elementer
+
+2. **PakkeplanPalle** - Én palle i planen
+   - Palle nummer (1, 2, 3...)
+   - Linker til `Palle` (palle-typen)
+   - Beregnede værdier (SamletHoejde, SamletVaegt, AntalLag)
+
+3. **PakkeplanElement** - Ét element placeret på en palle
+   - Linker til `Element`
+   - Position: `Lag` (1, 2, 3...), `Plads` (1-5)
+   - `ErRoteret` - Om elementet blev roteret
+   - `Sortering` - Rækkefølge
+
+## Service Interfaces
+
+Alle services er interface-baseret for testbarhed og dependency injection:
+
+- **IPalleService**: CRUD for paller
+- **IElementService**: CRUD for elementer (inkl. bulk oprettelse)
+- **IPalleOptimeringService**: Genererer pakkeplaner
+- **IPalleOptimeringSettingsService**: CRUD for settings
+
+## Autorisation (Role-Based)
+
+| Handling | NormalUser | SuperUser |
+|----------|------------|-----------|
+| Se paller/elementer | ✅ | ✅ |
+| Oprette paller/elementer | ❌ | ✅ |
+| Redigere paller/elementer (inkl. regler) | ❌ | ✅ |
+| Slette paller/elementer | ❌ | ✅ |
+| Generer pakkeplan | ✅ | ✅ |
+| Administrer settings | ❌ | ✅ |
 
 ## Integrerede Regler
 
-Regler er **properties** på modellerne:
-- **Rotationsregel**: `Element.RotationsRegel` property
-- **Mellemrumsregel**: `Palle.LuftMellemElementer` property
-- **Stablingsregel**: `Element.ErGeometrielement` property
+**Regler er IKKE separate klasser/tabeller:**
 
-## Implementation
+| Regeltype | Implementation | Lokation |
+|-----------|----------------|----------|
+| Rotationsregel | `Element.RotationsRegel` property | Element tabel |
+| Mellemrumsregel | `Palle.LuftMellemElementer` property | Paller tabel |
+| Stablingsregel | `Element.ErGeometrielement` property | Element tabel |
+| Optimeringsregler | `PalleOptimeringSettings` properties | Settings tabel |
 
-- ASP.NET Core Identity: `ApplicationUser extends IdentityUser`
-- Roller: `AspNetRoles` og `AspNetUserRoles` tabeller
-- Authorization: `[Authorize(Roles = "SuperUser")]`
-- ORM: Entity Framework Core
+## Teknologi Stack
+
+- **Framework**: ASP.NET Core 6.0
+- **ORM**: Entity Framework Core 6
+- **Database**: SQL Server / Azure SQL
+- **Authentication**: ASP.NET Core Identity
+- **Authorization**: Role-based (`[Authorize(Roles = "...")]`)
+- **Pattern**: Service Layer (Interface-based)
+- **DI**: Built-in Dependency Injection
+
+## Database Context
+
+```csharp
+public class PalleOptimeringContext : IdentityDbContext<ApplicationUser>
+{
+    public DbSet<Palle> Paller { get; set; }
+    public DbSet<Element> Elementer { get; set; }
+    public DbSet<PalleOptimeringSettings> Settings { get; set; }
+    public DbSet<Pakkeplan> Pakkeplaner { get; set; }
+    public DbSet<PakkeplanPalle> PakkeplanPaller { get; set; }
+    public DbSet<PakkeplanElement> PakkeplanElementer { get; set; }
+}
+```
+
+Dette klassediagram er nu 1:1 med den faktiske kode!
