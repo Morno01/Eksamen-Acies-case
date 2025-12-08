@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sekvensdiagram - PalleOptimering System</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .info {
+            background: #fff3e0;
+            padding: 15px;
+            border-left: 4px solid #FF9800;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Sekvensdiagram - PalleOptimering System</h1>
+        <div class="info">
+            <strong>Info:</strong> Dette sekvensdiagram viser alle systemets flows inklusive login, CRUD operationer og pakkeplan-generering. Højreklik på diagrammet og vælg "Gem billede som..." for at gemme det.
+        </div>
+        <div class="mermaid">
+sequenceDiagram
+    actor Bruger
+    participant UI
+    participant BrugerService as AccountController
+    participant PalleService
+    participant ElementService
+    participant OptimeringService as PalleOptimeringService
+    participant Database
+
+    Note over Bruger,Database: LOGIN
+    Bruger->>UI: Indtast brugernavn og password
+    UI->>BrugerService: login(brugernavn, password)
+    BrugerService->>Database: SELECT * FROM AspNetUsers WHERE...
+    Database-->>BrugerService: Bruger + rolle
+    BrugerService-->>UI: Login OK + rolle
+    UI-->>Bruger: Anmod om palleoversigt
+
+    Note over Bruger,Database: VIS PALLER
+    Bruger->>UI: Vis paller
+    UI->>PalleService: hentAllePaller()
+    PalleService->>Database: SELECT * FROM Paller
+    Database-->>PalleService: Palleliste
+    PalleService-->>UI: Palleliste
+    UI-->>Bruger: Vis paller
+
+    Note over Bruger,Database: OPRET NY PALLE (kun SuperUser)
+    Bruger->>UI: Opret ny palle
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperUser
+    UI-->>Bruger: Vis palle formular
+    Bruger->>UI: Udfyld data (inkl. LuftMellemElementer)
+    UI->>PalleService: opretPalle(palle)
+    Note right of PalleService: Palle inkluderer LuftMellemElementer
+    PalleService->>Database: INSERT INTO Paller
+    Database-->>PalleService: Palle.Id
+    PalleService-->>UI: Palle oprettet
+    UI-->>Bruger: Palle oprettet med regler
+
+    Note over Bruger,Database: REDIGER PALLE (kun SuperUser)
+    Bruger->>UI: Rediger palle
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperUser
+    UI->>PalleService: hentPalle(palleId)
+    PalleService->>Database: SELECT * FROM Paller WHERE Id = ?
+    Database-->>PalleService: Palle-data
+    PalleService-->>UI: Palle-data
+    UI-->>Bruger: Vis palle formular
+    Bruger->>UI: Ændre palle-data (inkl. regler)
+    UI->>PalleService: opdaterPalle(palle)
+    PalleService->>Database: UPDATE Paller SET ...
+    Database-->>PalleService: OK
+    PalleService-->>UI: Palle opdateret
+    UI-->>Bruger: Palle gemt
+
+    Note over Bruger,Database: OPRET ELEMENT (kun SuperUser)
+    Bruger->>UI: Opret element
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperUser
+    UI-->>Bruger: Vis element formular
+    Bruger->>UI: Udfyld data (inkl. RotationsRegel, ErGeometrielement)
+    UI->>ElementService: opretElement(element)
+    Note right of ElementService: Element inkluderer RotationsRegel og ErGeometrielement
+    ElementService->>Database: INSERT INTO Elementer
+    Database-->>ElementService: Element.Id
+    ElementService-->>UI: Element oprettet
+    UI-->>Bruger: Element oprettet med regler
+
+    Note over Bruger,Database: ÆNDRE REGLER (element)
+    Bruger->>UI: Rediger element regler
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperUser
+    UI->>ElementService: hentElement(elementId)
+    ElementService->>Database: SELECT * FROM Elementer WHERE Id = ?
+    Database-->>ElementService: Element data
+    ElementService-->>UI: Element data
+    UI-->>Bruger: Vis formular
+    Bruger->>UI: Ændre regler (RotationsRegel, ErGeometrielement)
+    UI->>ElementService: opdaterElement(element)
+    ElementService->>Database: UPDATE Elementer SET ...
+    Database-->>ElementService: OK
+    ElementService-->>UI: Element opdateret
+    UI-->>Bruger: Regler ændret
+
+    Note over Bruger,Database: ÆNDRE REGLER (palle)
+    Bruger->>UI: Rediger palle regler
+    UI->>PalleService: hentPalle(palleId)
+    PalleService->>Database: SELECT * FROM Paller WHERE Id = ?
+    Database-->>PalleService: Palle data
+    PalleService-->>UI: Palle data
+    UI-->>Bruger: Vis formular
+    Bruger->>UI: Ændre LuftMellemElementer
+    UI->>PalleService: opdaterPalle(palle)
+    PalleService->>Database: UPDATE Paller SET LuftMellemElementer = ...
+    Database-->>PalleService: OK
+    PalleService-->>UI: Palle opdateret
+    UI-->>Bruger: Regel ændret
+
+    Note over Bruger,Database: GENERER PAKKEPLAN
+    Bruger->>UI: Vælg elementer + klik generer
+    UI->>OptimeringService: genererPakkeplan(elementIds)
+    OptimeringService->>Database: SELECT * FROM Elementer WHERE Id IN (...)
+    Database-->>OptimeringService: Elementer (inkl. RotationsRegel)
+    OptimeringService->>Database: SELECT * FROM Paller WHERE Aktiv = true
+    Database-->>OptimeringService: Aktive paller (inkl. LuftMellemElementer)
+    OptimeringService->>Database: SELECT * FROM PalleOptimeringSettings
+    Database-->>OptimeringService: Settings
+    Note right of OptimeringService: Anvender regler fra properties
+    OptimeringService->>OptimeringService: Kør optimeringsalgoritme
+    OptimeringService->>Database: INSERT INTO Pakkeplaner
+    Database-->>OptimeringService: Pakkeplan.Id
+    OptimeringService->>Database: INSERT INTO PakkeplanPaller
+    Database-->>OptimeringService: PakkeplanPalle.Id
+    OptimeringService->>Database: INSERT INTO PakkeplanElementer
+    Database-->>OptimeringService: OK
+    OptimeringService-->>UI: Pakkeplan genereret
+    UI-->>Bruger: Vis pakkeplan resultat
+        </div>
+    </div>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            sequence: {
+                useMaxWidth: true
+            }
+        });
+    </script>
+</body>
+</html>
