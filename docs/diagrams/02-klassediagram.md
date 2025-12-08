@@ -4,7 +4,6 @@ Dette diagram viser systemets kernestruktur - simpelt og klart.
 
 ```mermaid
 classDiagram
-    %% BRUGER
     class Bruger {
         +int Id
         +string Brugernavn
@@ -15,9 +14,6 @@ classDiagram
         +genererPakkeplan()
     }
 
-    note for Bruger "Rolle: 'NormalUser' eller 'SuperUser'\nNormalUser = read-only\nSuperUser = fuld adgang"
-
-    %% MODELS
     class Palle {
         +int Id
         +string Beskrivelse
@@ -39,7 +35,6 @@ classDiagram
         +string OrdreReference
     }
 
-    %% SERVICES
     class PalleService {
         +GetAllePaller()
         +OpretPalle()
@@ -49,73 +44,73 @@ classDiagram
     class ElementService {
         +GetAlleElementer()
         +OpretElement()
+        +OpdaterElement()
     }
 
     class PalleOptimeringService {
         +GenererPakkeplan()
     }
 
-    %% RELATIONER
-    Bruger --> Palle : SuperUser: opretter/redigerer
-    Bruger --> Element : SuperUser: opretter/redigerer
-    Bruger --> Pakkeplan : begge roller: kan se
+    Bruger --> Palle : opretter/redigerer
+    Bruger --> Element : opretter/redigerer
+    Bruger --> Pakkeplan : kan se
 
     Pakkeplan --> Palle : bruger
     Pakkeplan --> Element : indeholder
 
-    PalleService ..> Palle
-    ElementService ..> Element
-    PalleOptimeringService ..> Pakkeplan
+    PalleService ..> Palle : håndterer
+    ElementService ..> Element : håndterer
+    PalleOptimeringService ..> Pakkeplan : genererer
 ```
 
-## Forklaring
+## Bruger Roller
 
-### Bruger
+**Bruger klasse** (ApplicationUser i koden)
+- Rolle property: `"NormalUser"` eller `"SuperUser"`
 
-**Bruger** (ApplicationUser i koden)
-- ÉN klasse for alle brugere - ingen nedarvning
-- Rolle gemt som property: `"NormalUser"` eller `"SuperUser"`
-- **NormalUser rolle**: Read-only adgang (se paller/elementer, generer pakkeplan)
-- **SuperUser rolle**: Fuld adgang (oprette, redigere, administrere alt)
+| Rolle | Rettigheder |
+|-------|-------------|
+| **NormalUser** | Read-only: Se paller, se elementer, generer pakkeplan |
+| **SuperUser** | Fuld adgang: Oprette, redigere, slette alt + administrere regler |
 
-### Modeller
+## Modeller
 
 **Palle**
 - Definerer palle-type med dimensioner
-- `LuftMellemElementer`: Mellemrumsregel integreret
+- `LuftMellemElementer`: Mellemrumsregel (integreret)
 
 **Element**
 - Døre/vinduer der skal pakkes
-- `RotationsRegel`: Rotationsregel integreret (Nej/Ja/Skal)
-- `ErGeometrielement`: Stablingsregel integreret
+- `RotationsRegel`: Rotationsregel (Nej/Ja/Skal) - integreret
+- `ErGeometrielement`: Stablingsregel - integreret
 
 **Pakkeplan**
 - Resultat af pakkeplan-generering
 - Indeholder elementer placeret på paller
 
-### Services
+## Services
 
-- **PalleService**: Håndterer paller (CRUD)
-- **ElementService**: Håndterer elementer (CRUD)
-- **PalleOptimeringService**: Genererer pakkeplaner
+- **PalleService**: CRUD for paller (kun SuperUser kan oprette/redigere)
+- **ElementService**: CRUD for elementer (kun SuperUser kan oprette/redigere)
+- **PalleOptimeringService**: Genererer pakkeplaner (begge roller)
 
-## Rettigheder
+## Ændre Regler
 
-| Handling | NormalBruger | SuperBruger |
-|----------|--------------|-------------|
-| Se paller/elementer | ✅ | ✅ |
-| Oprette/redigere | ❌ | ✅ |
-| Generer pakkeplan | ✅ | ✅ |
+**SuperUser kan ændre regler:**
+- På Element: `RotationsRegel`, `ErGeometrielement`
+- På Palle: `LuftMellemElementer`
+- Ændres via redigering af element/palle (én UPDATE operation)
 
-## Vigtige Noter
+## Integrerede Regler
 
-**Integrerede Regler:**
-- Rotationsregel: `Element.RotationsRegel`
-- Mellemrumsregel: `Palle.LuftMellemElementer`
-- Stablingsregel: `Element.ErGeometrielement`
+Regler er **properties** på modellerne:
+- **Rotationsregel**: `Element.RotationsRegel` property
+- **Mellemrumsregel**: `Palle.LuftMellemElementer` property
+- **Stablingsregel**: `Element.ErGeometrielement` property
 
-**Implementation:**
-- ASP.NET Core Identity: `ApplicationUser` extends `IdentityUser`
-- Roller håndteres via `AspNetRoles` og `AspNetUserRoles` tabeller
-- Role-based authorization: `[Authorize(Roles = "SuperUser")]`
-- Entity Framework Core
+## Implementation
+
+- ASP.NET Core Identity: `ApplicationUser extends IdentityUser`
+- Roller: `AspNetRoles` og `AspNetUserRoles` tabeller
+- Authorization: `[Authorize(Roles = "SuperUser")]`
+- ORM: Entity Framework Core

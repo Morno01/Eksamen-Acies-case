@@ -76,6 +76,40 @@ sequenceDiagram
     ElementService-->>UI: Element oprettet
     UI-->>Bruger: Element oprettet med regler
 
+    %% ===== ÆNDRE REGLER PÅ ELEMENT =====
+    Note over Bruger,Database: ÆNDRE REGLER (element)
+    Bruger->>UI: Rediger element regler
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperBruger
+    UI->>ElementService: hentElement(elementId)
+    ElementService->>Database: SELECT * FROM Elementer WHERE Id = ?
+    Database-->>ElementService: Element data
+    ElementService-->>UI: Element data
+    UI-->>Bruger: Vis formular
+
+    Bruger->>UI: Ændre regler:<br/>- RotationsRegel: Ja → Skal<br/>- ErGeometrielement: false → true
+    UI->>ElementService: opdaterElement(element)
+    ElementService->>Database: UPDATE Elementer SET<br/>RotationsRegel='Skal',<br/>ErGeometrielement=true<br/>WHERE Id = ?
+    Database-->>ElementService: OK
+    ElementService-->>UI: Element opdateret
+    UI-->>Bruger: Regler ændret
+
+    %% ===== ÆNDRE REGLER PÅ PALLE =====
+    Note over Bruger,Database: ÆNDRE REGLER (palle)
+    Bruger->>UI: Rediger palle regler
+    UI->>PalleService: hentPalle(palleId)
+    PalleService->>Database: SELECT * FROM Paller WHERE Id = ?
+    Database-->>PalleService: Palle data
+    PalleService-->>UI: Palle data
+    UI-->>Bruger: Vis formular
+
+    Bruger->>UI: Ændre LuftMellemElementer:<br/>10mm → 20mm
+    UI->>PalleService: opdaterPalle(palle)
+    PalleService->>Database: UPDATE Paller SET<br/>LuftMellemElementer=20<br/>WHERE Id = ?
+    Database-->>PalleService: OK
+    PalleService-->>UI: Palle opdateret
+    UI-->>Bruger: Regel ændret
+
     %% ===== GENERER PAKKEPLAN =====
     Note over Bruger,Database: GENERER PAKKEPLAN
     Bruger->>UI: Vælg elementer + klik generer
@@ -142,7 +176,22 @@ sequenceDiagram
 - **Én** INSERT operation gemmer alt i `Elementer` tabellen
 - Ingen separate regel-tabeller
 
-### 6. Generer Pakkeplan
+### 6. Ændre Regler på Element (kun SuperUser)
+- SuperUser vælger et element at redigere
+- `ElementService` henter eksisterende element data
+- SuperUser ændrer regler:
+  - `RotationsRegel`: Ændre fra "Ja" til "Skal"
+  - `ErGeometrielement`: Ændre fra false til true
+- **Én** UPDATE operation opdaterer alle properties inkl. regler
+
+### 7. Ændre Regler på Palle (kun SuperUser)
+- SuperUser vælger en palle at redigere
+- `PalleService` henter eksisterende palle data
+- SuperUser ændrer mellemrumsregel:
+  - `LuftMellemElementer`: Ændre fra 10mm til 20mm
+- **Én** UPDATE operation opdaterer alle properties inkl. regel
+
+### 8. Generer Pakkeplan
 - Vælg elementer der skal pakkes
 - `PalleOptimeringService` henter:
   - Elementer (med RotationsRegel, ErGeometrielement)
