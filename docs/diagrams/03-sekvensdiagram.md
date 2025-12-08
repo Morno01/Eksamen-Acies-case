@@ -1,6 +1,6 @@
 # Sekvensdiagram - PalleOptimering System
 
-Dette diagram viser de vigtigste brugerflows gennem systemet, baseret på det oprindelige design.
+Dette diagram viser systemets faktiske flows, 100% som implementeret i koden.
 
 ```mermaid
 sequenceDiagram
@@ -8,15 +8,15 @@ sequenceDiagram
     participant UI
     participant BrugerService as AccountController<br/>(BrugerService)
     participant PalleService
-    participant RegelService as PalleOptimeringService<br/>(RegelService)
-    participant PlaceringService as PalleOptimeringService<br/>(PlaceringService)
+    participant ElementService
+    participant OptimeringService as PalleOptimeringService<br/>(Regel + Placering)
     participant Database
 
     %% ===== LOGIN FLOW =====
     Note over Bruger,Database: LOGIN
     Bruger->>UI: Indtast brugernavn & password
     UI->>BrugerService: login(brugernavn, password)
-    BrugerService->>Database: SELECT * FROM Bruger WHERE...
+    BrugerService->>Database: SELECT * FROM AspNetUsers WHERE...
     Database-->>BrugerService: Bruger + rolle
     BrugerService-->>UI: Login OK + rolle
     UI-->>Bruger: Anmod om palleoversigt
@@ -25,143 +25,193 @@ sequenceDiagram
     Note over Bruger,Database: VIS PALLER
     Bruger->>UI: Vis paller
     UI->>PalleService: hentAllePaller()
-    PalleService->>Database: SELECT * FROM Palle
+    PalleService->>Database: SELECT * FROM Paller
     Database-->>PalleService: Palleliste
     PalleService-->>UI: Palleliste
     UI-->>Bruger: Vis paller
 
     %% ===== OPRET NY PALLE (kun SuperBruger) =====
-    Note over Bruger,Database: OPRET NY PALLE
+    Note over Bruger,Database: OPRET NY PALLE (inkl. regler)
     Bruger->>UI: Opret ny palle
     UI->>BrugerService: checkRolle()
-    BrugerService-->>UI: rolle = Superbruger
-    UI->>Bruger: Vis palle formular
-    Bruger->>UI: Udfyld data<br/>(beskrivelse, dimensioner, regler)
-    UI->>PalleService: opretPalle(palleId)
-    PalleService->>Database: INSERT INTO Palle
-    Database-->>PalleService: palleId
+    BrugerService-->>UI: rolle = SuperBruger
+    UI-->>Bruger: Vis palle formular
+    Bruger->>UI: Udfyld data:<br/>- Beskrivelse, dimensioner<br/>- LuftMellemElementer (regel)<br/>- MaksVaegt, MaksHoejde
+    UI->>PalleService: opretPalle(palle)
+    Note right of PalleService: Palle inkluderer<br/>LuftMellemElementer<br/>(mellemrumsregel)
+    PalleService->>Database: INSERT INTO Paller<br/>(inkl. alle properties)
+    Database-->>PalleService: Palle.Id
     PalleService-->>UI: Palle oprettet
-    UI-->>Bruger: Palle oprettet
-
-    %% ===== TILFØJ REGLER TIL PALLE =====
-    Note over Bruger,Database: TILFØJ REGLER
-    Bruger->>UI: Tilføj regler til palle
-    UI->>RegelService: opretRotationsRegel(palleId, ...)
-    RegelService->>Database: INSERT INTO Rotations_regel
-    Database-->>RegelService: OK
-
-    UI->>RegelService: opretMellemrumsRegel(palleId, ...)
-    RegelService->>Database: INSERT INTO Mellemrums_regel
-    Database-->>RegelService: OK
-
-    UI->>RegelService: opretStablingsRegel(palleId, ...)
-    RegelService->>Database: INSERT INTO Stablings_regel
-    Database-->>RegelService: OK
-
-    RegelService-->>UI: Regler oprettet
-    UI-->>Bruger: Regler tilføjet
+    UI-->>Bruger: Palle oprettet med regler
 
     %% ===== REDIGER PALLE (kun SuperBruger) =====
     Note over Bruger,Database: REDIGER PALLE
     Bruger->>UI: Rediger palle
     UI->>BrugerService: checkRolle()
-    BrugerService-->>UI: rolle = Superbruger
+    BrugerService-->>UI: rolle = SuperBruger
     UI->>PalleService: hentPalle(palleId)
-    PalleService->>Database: SELECT * FROM Palle WHERE id = ?
+    PalleService->>Database: SELECT * FROM Paller WHERE Id = ?
     Database-->>PalleService: Palle-data
     PalleService-->>UI: Palle-data
-    UI-->>Bruger: Gem ændringer
+    UI-->>Bruger: Vis palle formular
 
-    Bruger->>UI: Ændre palle-data
-    UI->>PalleService: opdaterPalle(palleId, data)
-    PalleService->>Database: UPDATE Palle SET ...
+    Bruger->>UI: Ændre palle-data<br/>(inkl. regler)
+    UI->>PalleService: opdaterPalle(palle)
+    PalleService->>Database: UPDATE Paller SET ...
     Database-->>PalleService: OK
     PalleService-->>UI: Palle opdateret
     UI-->>Bruger: Palle gemt
 
-    %% ===== TILFØJ ELEMENT TIL PALLE =====
+    %% ===== OPRET ELEMENT =====
+    Note over Bruger,Database: OPRET ELEMENT (inkl. regler)
+    Bruger->>UI: Opret element
+    UI->>BrugerService: checkRolle()
+    BrugerService-->>UI: rolle = SuperBruger
+    UI-->>Bruger: Vis element formular
+    Bruger->>UI: Udfyld data:<br/>- Dimensioner, vægt<br/>- RotationsRegel (Nej/Ja/Skal)<br/>- ErGeometrielement (stabling)
+    UI->>ElementService: opretElement(element)
+    Note right of ElementService: Element inkluderer<br/>RotationsRegel og<br/>ErGeometrielement
+    ElementService->>Database: INSERT INTO Elementer<br/>(inkl. alle properties)
+    Database-->>ElementService: Element.Id
+    ElementService-->>UI: Element oprettet
+    UI-->>Bruger: Element oprettet med regler
+
+    %% ===== GENERER PAKKEPLAN =====
     Note over Bruger,Database: GENERER PAKKEPLAN
-    Bruger->>UI: Tilføj element til palle
-    UI->>PlaceringService: tilføjPlacering(palleId, elementId, lag, roteret)
-    PlaceringService->>Database: INSERT INTO Placering ...
-    Database-->>PlaceringService: OK
-    PlaceringService-->>UI: Placering oprettet
-    UI-->>Bruger: Element placeret på palle<br/>Fuldt palle-setup færdigt
+    Bruger->>UI: Vælg elementer + klik generer
+    UI->>OptimeringService: genererPakkeplan(elementIds)
+
+    OptimeringService->>Database: SELECT * FROM Elementer WHERE Id IN (...)
+    Database-->>OptimeringService: Elementer (inkl. RotationsRegel)
+
+    OptimeringService->>Database: SELECT * FROM Paller WHERE Aktiv = true
+    Database-->>OptimeringService: Aktive paller (inkl. LuftMellemElementer)
+
+    OptimeringService->>Database: SELECT * FROM PalleOptimeringSettings
+    Database-->>OptimeringService: Settings (MaksLag, vægtgrænser)
+
+    Note right of OptimeringService: Anvender regler:<br/>- Rotationsregel fra Element<br/>- Mellemrumsregel fra Palle<br/>- Stablingsregel fra Element<br/>- Settings parametre
+
+    OptimeringService->>OptimeringService: Kør optimeringsalgoritme
+
+    OptimeringService->>Database: INSERT INTO Pakkeplaner
+    Database-->>OptimeringService: Pakkeplan.Id
+
+    OptimeringService->>Database: INSERT INTO PakkeplanPaller
+    Database-->>OptimeringService: PakkeplanPalle.Id
+
+    OptimeringService->>Database: INSERT INTO PakkeplanElementer<br/>(lag, plads, roteret)
+    Database-->>OptimeringService: OK
+
+    OptimeringService-->>UI: Pakkeplan genereret
+    UI-->>Bruger: Vis pakkeplan resultat
 ```
 
 ## Flow Beskrivelser
 
 ### 1. Login Flow
 - Bruger indtaster brugernavn og password
-- `AccountController` (BrugerService) validerer mod database
-- Returnerer bruger med rolle (NormalBruger eller SuperBruger)
-- UI viser palleoversigt baseret på rolle
+- `AccountController` validerer mod `AspNetUsers` tabel
+- Returnerer bruger med rolle (NormalUser eller SuperUser)
+- UI tilpasses efter rolle
 
 ### 2. Vis Paller
-- Både NormalBruger og SuperBruger kan se paller
-- `PalleService` henter alle paller fra database
+- Både NormalUser og SuperUser kan se paller
+- `PalleService.GetAllePaller()` henter fra database
 - UI viser palleliste
 
-### 3. Opret Ny Palle (kun SuperBruger)
-- Systemet checker om brugeren er SuperBruger
-- Viser formular til at indtaste palle data
-- `PalleService` opretter palle i database
-- Returnerer palle ID
+### 3. Opret Ny Palle (kun SuperUser)
+- Systemet checker brugerrolle
+- Formular indeholder **alle** palle properties inkl. regler:
+  - Beskrivelse, dimensioner (længde, bredde, højde)
+  - **LuftMellemElementer** (mellemrumsregel) - integreret!
+  - MaksVaegt, MaksHoejde, Aktiv
+- **Én** INSERT operation gemmer alt i `Paller` tabellen
+- Ingen separate regel-tabeller
 
-### 4. Tilføj Regler til Palle
-- SuperBruger kan tilføje regler til en palle
-- `PalleOptimeringService` (RegelService) håndterer:
-  - Rotationsregler (må element roteres?)
-  - Mellemrumsregler (afstand mellem elementer)
-  - Stablingsregler (må der stables ovenpå?)
-- Gemmes i database
+### 4. Rediger Palle (kun SuperUser)
+- Hent eksisterende palle data
+- Rediger alle properties (inkl. LuftMellemElementer)
+- **Én** UPDATE operation opdaterer alt
 
-**Note**: I den faktiske implementation er regler integreret i Palle og Element modellerne
+### 5. Opret Element (inkl. regler)
+- Formular indeholder **alle** element properties inkl. regler:
+  - Dimensioner, vægt, type, serie
+  - **RotationsRegel** (Nej/Ja/Skal) - integreret!
+  - **ErGeometrielement** (stablingsregel) - integreret!
+- **Én** INSERT operation gemmer alt i `Elementer` tabellen
+- Ingen separate regel-tabeller
 
-### 5. Rediger Palle (kun SuperBruger)
-- Systemet checker om brugeren er SuperBruger
-- `PalleService` henter eksisterende palle data
-- Bruger ændrer data
-- `PalleService` opdaterer palle i database
+### 6. Generer Pakkeplan
+- Vælg elementer der skal pakkes
+- `PalleOptimeringService` henter:
+  - Elementer (med RotationsRegel, ErGeometrielement)
+  - Paller (med LuftMellemElementer)
+  - Settings (MaksLag, vægtgrænser)
+- **Anvender regler** fra properties under optimering:
+  - Tjekker `Element.RotationsRegel` før rotation
+  - Bruger `Palle.LuftMellemElementer` ved placering
+  - Tjekker `Element.ErGeometrielement` før stabling
+  - Følger `Settings.MaksLag` og vægtgrænser
+- Gemmer resultat i 3 tabeller:
+  - `Pakkeplaner` (pakkeplan info)
+  - `PakkeplanPaller` (paller i planen)
+  - `PakkeplanElementer` (element placeringer)
 
-### 6. Generer Pakkeplan (Tilføj Element til Palle)
-- Bruger vælger elementer og palle
-- `PalleOptimeringService` (PlaceringService) opretter placering
-- Beregner lag, position og rotation
-- Gemmer i database (Pakkeplan → PakkeplanPalle → PakkeplanElement)
+## Nøgle Forskelle fra Konceptuelt Diagram
+
+### ✅ Korrekt i Faktisk Implementation
+
+| Koncept | Virkelighed |
+|---------|-------------|
+| Separate regel-tabeller | **Regler er properties** på Palle/Element |
+| `INSERT INTO Rotations_regel` | `Element.RotationsRegel = "Ja"` |
+| `INSERT INTO Mellemrums_regel` | `Palle.LuftMellemElementer = 10` |
+| `INSERT INTO Stablings_regel` | `Element.ErGeometrielement = true` |
+| RegelService | **Ingen separat service** - del af PalleOptimeringService |
+
+### Integrerede Regler i Praksis
+
+**Palle model:**
+```csharp
+public class Palle {
+    public int LuftMellemElementer { get; set; }  // Mellemrumsregel
+    // ... andre properties
+}
+```
+
+**Element model:**
+```csharp
+public class Element {
+    public string RotationsRegel { get; set; }     // "Nej", "Ja", "Skal"
+    public bool ErGeometrielement { get; set; }    // Stablingsregel
+    // ... andre properties
+}
+```
+
+**Optimering bruger properties:**
+```csharp
+// Tjek rotationsregel
+if (element.RotationsRegel == "Skal") { /* roter element */ }
+
+// Anvend mellemrumsregel
+var afstand = palle.LuftMellemElementer;
+
+// Tjek stablingsregel
+if (element.ErGeometrielement) { /* må ikke stable ovenpå */ }
+```
 
 ## Service Mapping
 
-| Oprindeligt Diagram | Faktisk Implementation |
+| Oprindeligt Koncept | Faktisk Implementation |
 |---------------------|------------------------|
 | BrugerService | `AccountController` + `SignInManager` |
-| PalleService | `PalleService` ✅ (match!) |
-| RegelService | `PalleOptimeringService` |
-| PlaceringService | `PalleOptimeringService` |
+| PalleService | `PalleService` ✅ |
+| RegelService | **Del af** `PalleOptimeringService` |
+| PlaceringService | **Del af** `PalleOptimeringService` |
 
-## Nøglepunkter
+## Autorisation
 
-### Autorisation
-- **NormalBruger**: Read-only adgang (kan kun se paller og elementer)
-- **SuperBruger**: Fuld adgang (kan oprette, redigere, slette)
-- Tjekkes via `[Authorize(Roles = "...")]` attributes
-
-### Database Operationer
-- Alle services kommunikerer med database via Entity Framework Core
-- `PalleOptimeringContext` håndterer alle database operationer
-- Transactions håndteres automatisk af DbContext
-
-### Regler i Praksis
-I den faktiske kode er reglerne integreret:
-- **Rotationsregel**: `Element.RotationsRegel` (Nej, Ja, Skal)
-- **Mellemrumsregel**: `Palle.LuftMellemElementer` (int i mm)
-- **Stablingsregel**: `Element.ErGeometrielement` (bool)
-
-Men flowet i sekvensdiagrammet viser konceptuelt hvordan regler håndteres.
-
-### Placering/Pakkeplan
-"Tilføj element til palle" svarer til at generere en pakkeplan:
-1. Vælg elementer
-2. Kør optimeringsalgoritme
-3. Placer elementer på paller (lag, position, rotation)
-4. Gem i `Pakkeplan` → `PakkeplanPalle` → `PakkeplanElement`
+- **NormalUser**: Read-only (se paller/elementer, generer pakkeplan)
+- **SuperUser**: Fuld adgang (CRUD på alt)
+- Implementeret via `[Authorize(Roles = "...")]` attributes
