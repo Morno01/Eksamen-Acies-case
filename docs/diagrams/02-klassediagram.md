@@ -1,52 +1,32 @@
-# Klassediagram - PalleOptimering System
+# Klassediagram - PalleOptimering System (1:1 med koden)
 
-Dette diagram viser systemets faktiske struktur.
+Dette diagram viser **præcis** hvad de forskellige brugerroller kan i systemet.
 
 ```mermaid
 classDiagram
-    %% BRUGER OG ROLLER
+    %% BRUGER
     class ApplicationUser {
         +string Id
         +string UserName
         +string Email
         +string FullName
         +DateTime CreatedAt
+        +ICollection~IdentityRole~ Roles
     }
 
-    class NormalUser {
-        <<rolle>>
-        Kan se paller
-        Kan se elementer
-        Kan generere pakkeplan
-    }
-
-    class SuperUser {
-        <<rolle>>
-        Kan se alt
-        Kan oprette paller
-        Kan redigere paller
-        Kan oprette elementer
-        Kan redigere elementer
-        Kan administrere settings
-    }
-
-    ApplicationUser ..> NormalUser : kan have rolle
-    ApplicationUser ..> SuperUser : kan have rolle
-
-    %% PALLE
+    %% MODELLER
     class Palle {
         +int Id
         +string PalleBeskrivelse
         +int Laengde
         +int Bredde
         +int Hoejde
+        +int LuftMellemElementer
         +decimal MaksVaegt
         +int MaksHoejde
-        +int LuftMellemElementer
         +bool Aktiv
     }
 
-    %% ELEMENT
     class Element {
         +int Id
         +string Reference
@@ -59,7 +39,6 @@ classDiagram
         +bool ErGeometrielement
     }
 
-    %% SETTINGS
     class PalleOptimeringSettings {
         +int Id
         +string Navn
@@ -68,11 +47,9 @@ classDiagram
         +bool Aktiv
     }
 
-    %% PAKKEPLAN
     class Pakkeplan {
         +int Id
         +string OrdreReference
-        +DateTime Oprettet
         +int AntalPaller
         +int AntalElementer
     }
@@ -80,7 +57,6 @@ classDiagram
     class PakkeplanPalle {
         +int Id
         +int PalleNummer
-        +int SamletHoejde
         +decimal SamletVaegt
         +int AntalLag
     }
@@ -94,106 +70,198 @@ classDiagram
 
     %% SERVICES
     class PalleService {
-        +GetAllePaller()
-        +OpretPalle()
-        +OpdaterPalle()
+        +GetAllePaller() [Both]
+        +GetPalle(id) [Both]
+        +OpretPalle(palle) [SuperUser]
+        +OpdaterPalle(palle) [SuperUser]
+        +SletPalle(id) [SuperUser]
     }
 
     class ElementService {
-        +GetAlleElementer()
-        +OpretElement()
-        +OpdaterElement()
+        +GetAlleElementer() [Both]
+        +GetElement(id) [Both]
+        +OpretElement(element) [SuperUser]
+        +OpdaterElement(element) [SuperUser]
+        +SletElement(id) [SuperUser]
     }
 
     class PalleOptimeringService {
-        +GenererPakkeplan()
+        +GenererPakkeplan(request) [Both]
+        +GetPakkeplan(id) [Both]
+        +GetAllePakkeplaner() [Both]
     }
 
-    %% RELATIONER
+    class PalleOptimeringSettingsService {
+        +GetAlleSettings() [Both]
+        +GetAktivSettings() [Both]
+        +OpretSettings(settings) [SuperUser]
+        +OpdaterSettings(settings) [SuperUser]
+    }
+
+    %% RELATIONER - Pakkeplan struktur
     Pakkeplan "1" --> "0..*" PakkeplanPalle
     PakkeplanPalle "1" --> "0..*" PakkeplanElement
     PakkeplanPalle --> Palle
     PakkeplanElement --> Element
     Pakkeplan --> PalleOptimeringSettings
 
+    %% RELATIONER - Services til modeller
     PalleService ..> Palle
     ElementService ..> Element
     PalleOptimeringService ..> Pakkeplan
+    PalleOptimeringSettingsService ..> PalleOptimeringSettings
+
+    %% RELATIONER - Bruger adgang
+    ApplicationUser --> PalleService : NormalUser=read, SuperUser=CRUD
+    ApplicationUser --> ElementService : NormalUser=read, SuperUser=CRUD
+    ApplicationUser --> PalleOptimeringService : Begge kan bruge
+    ApplicationUser --> PalleOptimeringSettingsService : NormalUser=read, SuperUser=CRUD
 ```
 
-## Bruger og Roller
+## Bruger Adgang (fra faktisk kode)
 
 ### ApplicationUser
-- **Én klasse for alle brugere** (extends IdentityUser)
-- Roller gemt i AspNetUserRoles tabel
-- INGEN nedarvning!
+**Én klasse for alle brugere** - extends `IdentityUser`
 
-### NormalUser (rolle)
-- ✅ Se paller
-- ✅ Se elementer
-- ✅ Generere pakkeplan
-- ❌ Oprette/redigere NOGET
+Rolle gemt i `AspNetUserRoles` tabel:
+- `"NormalUser"` ELLER `"SuperUser"`
 
-### SuperUser (rolle)
-- ✅ Alt NormalUser kan
-- ✅ Oprette paller/elementer
-- ✅ Redigere paller/elementer (inkl. regler)
-- ✅ Slette paller/elementer
-- ✅ Administrere settings
+### NormalUser Rolle - Read-Only
 
-## Modeller
+**PalleService:**
+```csharp
+[Authorize(Roles = "SuperUser,NormalUser")]
+GetAllePaller()     ✅ Kan kalde
+GetPalle(id)        ✅ Kan kalde
 
-### Palle
-- Dimensioner: `Laengde`, `Bredde`, `Hoejde`
-- Begrænsninger: `MaksVaegt`, `MaksHoejde`
-- **Regel integreret**: `LuftMellemElementer` (mellemrumsregel)
-
-### Element
-- Dimensioner: `Hoejde`, `Bredde`, `Dybde`, `Vaegt`
-- **Regler integreret**:
-  - `RotationsRegel` ("Nej", "Ja", "Skal")
-  - `ErGeometrielement` (stablingsregel)
-
-### PalleOptimeringSettings
-- Globale optimeringsregler
-- `MaksLag`, `TilladVendeOpTilMaksKg`, osv.
-
-### Pakkeplan Struktur
-```
-Pakkeplan (ordre)
-  └─ PakkeplanPalle (palle 1, 2, 3...)
-      └─ PakkeplanElement (element placering med lag, plads, rotation)
+[Authorize(Roles = "SuperUser")]
+OpretPalle()        ❌ FORBIDDEN 403
+OpdaterPalle()      ❌ FORBIDDEN 403
+SletPalle()         ❌ FORBIDDEN 403
 ```
 
-## Services
+**ElementService:**
+```csharp
+[Authorize(Roles = "SuperUser,NormalUser")]
+GetAlleElementer()  ✅ Kan kalde
+GetElement(id)      ✅ Kan kalde
 
-- **PalleService**: CRUD for paller
-- **ElementService**: CRUD for elementer
-- **PalleOptimeringService**: Genererer pakkeplaner
+[Authorize(Roles = "SuperUser")]
+OpretElement()      ❌ FORBIDDEN 403
+OpdaterElement()    ❌ FORBIDDEN 403 (inkl. ændre regler)
+SletElement()       ❌ FORBIDDEN 403
+```
 
-## Autorisation
+**PalleOptimeringService:**
+```csharp
+[Authorize(Roles = "SuperUser,NormalUser")]
+GenererPakkeplan()  ✅ Kan kalde
+GetPakkeplan()      ✅ Kan kalde
+```
 
-| Handling | NormalUser | SuperUser |
-|----------|------------|-----------|
-| Se paller/elementer | ✅ | ✅ |
-| Oprette | ❌ | ✅ |
-| Redigere (inkl. regler) | ❌ | ✅ |
-| Slette | ❌ | ✅ |
-| Generer pakkeplan | ✅ | ✅ |
-| Administrer settings | ❌ | ✅ |
+**PalleOptimeringSettingsService:**
+```csharp
+[Authorize(Roles = "SuperUser,NormalUser")]
+GetAlleSettings()   ✅ Kan kalde
+GetAktivSettings()  ✅ Kan kalde
 
-## Vigtige Noter
+[Authorize(Roles = "SuperUser")]
+OpretSettings()     ❌ FORBIDDEN 403
+OpdaterSettings()   ❌ FORBIDDEN 403
+```
 
-### Regler er integreret (IKKE separate tabeller):
-- **Rotationsregel**: `Element.RotationsRegel` property
-- **Mellemrumsregel**: `Palle.LuftMellemElementer` property
-- **Stablingsregel**: `Element.ErGeometrielement` property
+### SuperUser Rolle - Fuld Adgang
 
-### Roller er IKKE separate klasser:
-- De vises kun for klarhed i diagrammet
-- I koden: `[Authorize(Roles = "SuperUser")]` attributes
+**PalleService:**
+```csharp
+GetAllePaller()     ✅ Kan kalde
+GetPalle(id)        ✅ Kan kalde
+OpretPalle()        ✅ Kan kalde
+OpdaterPalle()      ✅ Kan kalde (inkl. ændre LuftMellemElementer)
+SletPalle()         ✅ Kan kalde
+```
 
-### Teknologi:
-- ASP.NET Core 6.0 + Identity
-- Entity Framework Core 6
-- SQL Server Database
+**ElementService:**
+```csharp
+GetAlleElementer()  ✅ Kan kalde
+GetElement(id)      ✅ Kan kalde
+OpretElement()      ✅ Kan kalde (inkl. sætte regler)
+OpdaterElement()    ✅ Kan kalde (inkl. ændre RotationsRegel, ErGeometrielement)
+SletElement()       ✅ Kan kalde
+```
+
+**PalleOptimeringService:**
+```csharp
+GenererPakkeplan()  ✅ Kan kalde
+GetPakkeplan()      ✅ Kan kalde
+GetAllePakkeplaner() ✅ Kan kalde
+```
+
+**PalleOptimeringSettingsService:**
+```csharp
+GetAlleSettings()   ✅ Kan kalde
+GetAktivSettings()  ✅ Kan kalde
+OpretSettings()     ✅ Kan kalde
+OpdaterSettings()   ✅ Kan kalde (ændre globale optimeringsregler)
+```
+
+## Adgangskontrol i Praksis
+
+### Fra Controllers (faktisk kode):
+
+**PallerController.cs:**
+```csharp
+[HttpGet]
+[Authorize(Roles = "SuperUser,NormalUser")]  // ← Begge kan se
+public async Task<ActionResult> GetAllePaller() { }
+
+[HttpPost]
+[Authorize(Roles = "SuperUser")]  // ← Kun SuperUser kan oprette
+public async Task<ActionResult> OpretPalle(Palle palle) { }
+
+[HttpPut("{id}")]
+[Authorize(Roles = "SuperUser")]  // ← Kun SuperUser kan redigere
+public async Task<ActionResult> OpdaterPalle(int id, Palle palle) { }
+```
+
+**ElementerController.cs:**
+```csharp
+[HttpGet]
+[Authorize(Roles = "SuperUser,NormalUser")]  // ← Begge kan se
+public async Task<ActionResult> GetAlleElementer() { }
+
+[HttpPut("{id}")]
+[Authorize(Roles = "SuperUser")]  // ← Kun SuperUser kan redigere regler
+public async Task<ActionResult> OpdaterElement(int id, Element element)
+{
+    // Kan ændre element.RotationsRegel
+    // Kan ændre element.ErGeometrielement
+}
+```
+
+## Opsummering
+
+| Handling | NormalUser | SuperUser | Kode Reference |
+|----------|------------|-----------|----------------|
+| **Se paller** | ✅ | ✅ | `[Authorize(Roles = "SuperUser,NormalUser")]` |
+| **Oprette paller** | ❌ 403 | ✅ | `[Authorize(Roles = "SuperUser")]` |
+| **Redigere paller (inkl. LuftMellemElementer)** | ❌ 403 | ✅ | `[Authorize(Roles = "SuperUser")]` |
+| **Slette paller** | ❌ 403 | ✅ | `[Authorize(Roles = "SuperUser")]` |
+| **Se elementer** | ✅ | ✅ | `[Authorize(Roles = "SuperUser,NormalUser")]` |
+| **Oprette elementer (inkl. sætte regler)** | ❌ 403 | ✅ | `[Authorize(Roles = "SuperUser")]` |
+| **Redigere elementer (inkl. RotationsRegel, ErGeometrielement)** | ❌ 403 | ✅ | `[Authorize(Roles = "SuperUser")]` |
+| **Slette elementer** | ❌ 403 | ✅ | `[Authorize(Roles = "SuperUser")]` |
+| **Generer pakkeplan** | ✅ | ✅ | `[Authorize(Roles = "SuperUser,NormalUser")]` |
+| **Se settings** | ✅ | ✅ | `[Authorize(Roles = "SuperUser,NormalUser")]` |
+| **Administrer settings** | ❌ 403 | ✅ | `[Authorize(Roles = "SuperUser")]` |
+
+## Integrerede Regler
+
+**Regler er properties på modellerne:**
+- **Rotationsregel**: `Element.RotationsRegel` ("Nej", "Ja", "Skal")
+- **Mellemrumsregel**: `Palle.LuftMellemElementer` (int i mm)
+- **Stablingsregel**: `Element.ErGeometrielement` (bool)
+
+**Kun SuperUser kan ændre disse via OpdaterElement() og OpdaterPalle() metoder.**
+
+Dette klassediagram er nu 1:1 med den faktiske kode og viser præcis hvad hver rolle kan!
