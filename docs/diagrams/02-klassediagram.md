@@ -12,7 +12,30 @@ classDiagram
         +string FullName
         +DateTime CreatedAt
     }
-    note for ApplicationUser "Extends IdentityUser\nRoller håndteres via\nAspNetUserRoles tabel"
+
+    class NormalUser_Rolle {
+        <<rolle>>
+        +sePaller()
+        +seElementer()
+        +genererPakkeplan()
+    }
+
+    class SuperUser_Rolle {
+        <<rolle>>
+        +sePaller()
+        +opretPalle()
+        +redigerPalle()
+        +sletPalle()
+        +seElementer()
+        +opretElement()
+        +redigerElement()
+        +sletElement()
+        +administrerSettings()
+        +genererPakkeplan()
+    }
+
+    ApplicationUser --> NormalUser_Rolle : kan have rolle
+    ApplicationUser --> SuperUser_Rolle : kan have rolle
 
     %% PALLE MODEL
     class Palle {
@@ -140,6 +163,16 @@ classDiagram
     PakkeplanElement --> Element : placerer
     Pakkeplan --> PalleOptimeringSettings : bruger
 
+    %% RELATIONER - Roller til adgang
+    NormalUser_Rolle -.-> IPalleService : read-only
+    NormalUser_Rolle -.-> IElementService : read-only
+    NormalUser_Rolle -.-> IPalleOptimeringService : kan bruge
+
+    SuperUser_Rolle -.-> IPalleService : fuld CRUD
+    SuperUser_Rolle -.-> IElementService : fuld CRUD
+    SuperUser_Rolle -.-> IPalleOptimeringService : kan bruge
+    SuperUser_Rolle -.-> IPalleOptimeringSettingsService : fuld CRUD
+
     %% RELATIONER - Services til modeller
     IPalleService ..> Palle : håndterer
     IElementService ..> Element : håndterer
@@ -152,9 +185,25 @@ classDiagram
 ### ApplicationUser (Bruger)
 - **Extends**: `IdentityUser` fra ASP.NET Core Identity
 - **Roller**: Håndteres via `AspNetRoles` og `AspNetUserRoles` tabeller
-  - "NormalUser" = Read-only
-  - "SuperUser" = Fuld adgang
 - **Ingen metoder**: Logik ligger i Controllers, ikke på bruger-objektet
+
+### Roller (NormalUser_Rolle & SuperUser_Rolle)
+**VIGTIGT**: Disse er IKKE separate klasser i koden!
+- De vises her kun for at illustrere forskellen i rettigheder
+- I koden er det `[Authorize(Roles = "...")]` attributes der styrer adgang
+
+**NormalUser_Rolle** (Read-only):
+- Kan se paller (via IPalleService.GetAllePaller)
+- Kan se elementer (via IElementService.GetAlleElementer)
+- Kan generere pakkeplaner (via IPalleOptimeringService)
+- Kan IKKE oprette, redigere eller slette noget
+
+**SuperUser_Rolle** (Fuld adgang):
+- Alt NormalUser kan + CRUD operationer
+- Kan oprette, redigere, slette paller (via IPalleService)
+- Kan oprette, redigere, slette elementer (via IElementService)
+- Kan administrere settings (via IPalleOptimeringSettingsService)
+- Kan generere pakkeplaner (via IPalleOptimeringService)
 
 ### Palle
 **Dimensioner:**
