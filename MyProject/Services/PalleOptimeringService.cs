@@ -199,7 +199,7 @@ namespace MyProject.Services
                     continue;
 
                 // Tjek højde begrænsninger
-                int totalHoejde = palle.Hoejde + element.Dybde;
+                int totalHoejde = palle.Hoejde + element.Hoejde;
                 if (totalHoejde > palle.MaksHoejde)
                     continue;
 

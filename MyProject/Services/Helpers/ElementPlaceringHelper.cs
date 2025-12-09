@@ -56,7 +56,7 @@ namespace MyProject.Services
                 return false;
 
             // Tjek højde
-            int nyHoejde = pakkeplanPalle.SamletHoejde + element.Dybde;
+            int nyHoejde = pakkeplanPalle.SamletHoejde + element.Hoejde;
             if (nyHoejde > palle.MaksHoejde)
                 return false;
 
@@ -98,7 +98,7 @@ namespace MyProject.Services
 
             // Opdater palle statistikker
             pakkeplanPalle.SamletVaegt += element.Vaegt;
-            pakkeplanPalle.SamletHoejde += element.Dybde;
+            pakkeplanPalle.SamletHoejde += element.Hoejde;
 
             if (lag > pakkeplanPalle.AntalLag)
                 pakkeplanPalle.AntalLag = lag;
@@ -119,7 +119,7 @@ namespace MyProject.Services
             if (element.Vaegt > _settings.TilladVendeOpTilMaksKg)
             {
                 // Tung - roter ikke med mindre makshøjde overskrides
-                int hoejdeUdenRotation = pakkeplanPalle.SamletHoejde + element.Dybde;
+                int hoejdeUdenRotation = pakkeplanPalle.SamletHoejde + element.Hoejde;
                 if (hoejdeUdenRotation > palle.MaksHoejde)
                     return true; // Roter alligevel
                 return false;
@@ -177,7 +177,7 @@ namespace MyProject.Services
                 return false;
 
             // Tjek samlet højde efter stabling
-            int nyHoejde = pakkeplanPalle.SamletHoejde + element.Dybde;
+            int nyHoejde = pakkeplanPalle.SamletHoejde + element.Hoejde;
             if (_settings.TilladStablingOpTilMaksHoejdeInklPalle.HasValue &&
                 nyHoejde > _settings.TilladStablingOpTilMaksHoejdeInklPalle.Value)
                 return false;
