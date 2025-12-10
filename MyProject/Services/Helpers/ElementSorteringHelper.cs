@@ -56,6 +56,10 @@ namespace MyProject.Services
                         ? elementerMedData.OrderBy(e => e.Element.Serie ?? string.Empty)
                         : sorteret.ThenBy(e => e.Element.Serie ?? string.Empty),
 
+                    "maerke" => sorteret == null
+                        ? elementerMedData.OrderBy(e => e.Element.Maerke ?? string.Empty)
+                        : sorteret.ThenBy(e => e.Element.Maerke ?? string.Empty),
+
                     _ => sorteret
                 };
             }

@@ -23,6 +23,12 @@ namespace MyProject.Models
         public string? Type { get; set; }
 
         /// <summary>
+        /// Mærke/Brand af element
+        /// </summary>
+        [StringLength(100)]
+        public string? Maerke { get; set; }
+
+        /// <summary>
         /// Serie (produktions batch)
         /// </summary>
         [StringLength(100)]
