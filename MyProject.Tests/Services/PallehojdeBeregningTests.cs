@@ -435,5 +435,21 @@ namespace MyProject.Tests.Services
             Assert.True(pakkeplanPalle.SamletHoejde <= palle.MaksHoejde,
                 "Højde check: 2150mm < 2800mm (OK uden rotation)");
         }
+
+        /// <summary>
+        /// TEST_FAIL: Denne test fejler med vilje for at verificere Test Explorer virker
+        /// </summary>
+        [Fact]
+        public void TEST_DenneFejlerMedVilje()
+        {
+            // Arrange
+            int forventet = 100;
+            int faktisk = 200;
+
+            // Assert - denne assertion vil ALTID fejle!
+            Assert.Equal(forventet, faktisk); // ❌ FEJLER: 100 != 200
+
+            // Hvis du kan se denne test fejle i Test Explorer, virker alt som det skal! ✅
+        }
     }
 }
