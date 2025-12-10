@@ -311,5 +311,126 @@ namespace MyProject.Tests.Services
             // Maksimum: 2 elementer kan placeres
             Assert.Equal(2, pakkeplanPalle.Elementer.Count);
         }
+
+        /// <summary>
+        /// SCRUM-72: TC1-UT-003 - Stabling overskriver maksimal højde
+        /// Test Step 1-3: Element allerede placeret, forsøg at placere et til
+        /// </summary>
+        [Fact]
+        public void SCRUM72_StablingOverskreiderMaksimalHoejde()
+        {
+            // Arrange
+            var settings = GetTestSettings();
+            var helper = new ElementPlaceringHelper(settings);
+            var palle = GetEURPalle();
+            // MaksHoejde = 2200mm
+
+            // Test Data: VIND-001 (Hoejde=1200mm)
+            var vindue1 = new ElementMedData(new Element
+            {
+                Id = 1,
+                Reference = "VIND-001",
+                Type = "Vindue",
+                Hoejde = 1200, // mm
+                Bredde = 1200, // mm
+                Dybde = 100,   // mm
+                Vaegt = 35m,   // kg
+                RotationsRegel = "Ja"
+            });
+
+            var vindue2 = new ElementMedData(new Element
+            {
+                Id = 2,
+                Reference = "VIND-001",
+                Type = "Vindue",
+                Hoejde = 1200, // mm
+                Bredde = 1200, // mm
+                Dybde = 100,   // mm
+                Vaegt = 35m,   // kg
+                RotationsRegel = "Ja"
+            });
+
+            var pakkeplanPalle = new PakkeplanPalle
+            {
+                Id = 1,
+                PalleId = palle.Id,
+                Palle = palle,
+                SamletHoejde = palle.Hoejde,
+                SamletVaegt = palle.Vaegt,
+                AntalLag = 1
+            };
+
+            // Test Step 1: Pre-condition - placer første VIND-001
+            helper.PlacerElement(vindue1, pakkeplanPalle);
+
+            // Verificer nuværende SamletHoejde = 1350 mm
+            Assert.Equal(1350, pakkeplanPalle.SamletHoejde);
+
+            // Test Step 2-3: Forsøg at placere andet VIND-001
+            // 1350 + 1200 = 2550mm > 2200mm (MaksHoejde)
+            bool kanPlacereAndetElement = helper.KanPlaceresPaaPalle(vindue2, pakkeplanPalle, palle);
+
+            // Expected Result: Andet element afvises
+            Assert.False(kanPlacereAndetElement, "Andet VIND-001 element skal afvises da 1350+1200=2550 > 2200");
+
+            // Verificer at kun første element er placeret
+            Assert.Single(pakkeplanPalle.Elementer);
+            Assert.Equal(1350, pakkeplanPalle.SamletHoejde); // Uændret
+        }
+
+        /// <summary>
+        /// SCRUM-74: TC2-UT - Tungt element roteres ikke
+        /// Test Step 1-5: Verificer at tunge elementer ikke roteres automatisk
+        /// </summary>
+        [Fact]
+        public void SCRUM74_TungtElementRoteresIkke()
+        {
+            // Test Step 1: Konfigurer settings: TilladVendeOpTilMaksKg = 50kg
+            var settings = GetTestSettings();
+            settings.TilladVendeOpTilMaksKg = 50m; // Maks 50kg må vendes
+            var helper = new ElementPlaceringHelper(settings);
+
+            var palle = GetEURPalle();
+            palle.MaksHoejde = 2800; // Nok plads til element uden rotation
+
+            // Test Step 2: Opret element med vægt = 75kg (over grænsen)
+            var tungtElement = new ElementMedData(new Element
+            {
+                Id = 1,
+                Reference = "TNG-001",
+                Type = "Tungt Element",
+                Hoejde = 2000, // mm
+                Bredde = 900,  // mm
+                Dybde = 100,   // mm
+                Vaegt = 75m,   // kg - OVER 50kg grænse
+                RotationsRegel = "Ja" // Må roteres, men gør det ikke pga vægt
+            });
+
+            var pakkeplanPalle = new PakkeplanPalle
+            {
+                Id = 1,
+                PalleId = palle.Id,
+                Palle = palle,
+                SamletHoejde = palle.Hoejde, // 150mm
+                SamletVaegt = palle.Vaegt,
+                AntalLag = 1
+            };
+
+            // Test Step 3: Placer element på palle
+            helper.PlacerElement(tungtElement, pakkeplanPalle);
+
+            // Test Step 4: Verificer rotation IKKE foretages
+            var placeretElement = pakkeplanPalle.Elementer.First();
+            Assert.False(placeretElement.ErRoteret, "Tungt element (75kg > 50kg) skal IKKE roteres");
+
+            // Test Step 5: Bekræft SamletHoejde = 150 + 2000 = 2150mm
+            int forventetHoejde = 150 + 2000;
+            Assert.Equal(forventetHoejde, pakkeplanPalle.SamletHoejde);
+            Assert.Equal(2150, pakkeplanPalle.SamletHoejde);
+
+            // Verificer at højde check passerer: 2150mm < 2800mm
+            Assert.True(pakkeplanPalle.SamletHoejde <= palle.MaksHoejde,
+                "Højde check: 2150mm < 2800mm (OK uden rotation)");
+        }
     }
 }
