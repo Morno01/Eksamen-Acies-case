@@ -406,9 +406,10 @@
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
                                             <strong>${el.reference || 'Element #' + el.elementId}</strong>
+                                            ${el.serie ? `<br><small class="text-primary"><i class="fas fa-tag"></i> ${el.serie}</small>` : ''}
                                             <br>
                                             <small class="text-muted">
-                                                ${el.hoejde}×${el.bredde} mm
+                                                H: ${el.hoejde} mm × <strong>B: ${el.bredde} mm</strong>
                                                 <br>
                                                 ${el.vaegt} kg | Plads ${el.plads}
                                             </small>

@@ -102,6 +102,7 @@ namespace MyProject.Services
                 {
                     ElementId = pe.ElementId,
                     Reference = pe.Element.Reference,
+                    Serie = pe.Element.Serie,
                     Lag = pe.Lag,
                     Plads = pe.Plads,
                     ErRoteret = pe.ErRoteret,

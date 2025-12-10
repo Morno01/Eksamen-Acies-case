@@ -27,6 +27,7 @@ namespace MyProject.Services.DTOs
     {
         public int ElementId { get; set; }
         public string? Reference { get; set; }
+        public string? Serie { get; set; }
         public int Lag { get; set; }
         public int Plads { get; set; }
         public bool ErRoteret { get; set; }
