@@ -208,19 +208,34 @@ namespace MyProject.Services
             if (!pakkeplanPalle.Elementer.Any())
                 return 1;
 
-            // Find hvilket lag vi er på baseret på højde
+            var palle = pakkeplanPalle.Palle;
             int aktuelLag = pakkeplanPalle.AntalLag;
 
-            // Tjek om vi kan være i nuværende lag eller skal starte nyt
+            // Tjek om element kan passe i nuværende lag baseret på BREDDE
             var elementerIAktuelLag = pakkeplanPalle.Elementer
                 .Where(e => e.Lag == aktuelLag)
                 .ToList();
 
-            // Hvis der er plads i nuværende lag (max 5 elementer)
-            if (elementerIAktuelLag.Count < 5)
-                return aktuelLag;
+            // Beregn hvor meget bredde der allerede er brugt i dette lag
+            int brugtBredde = 0;
+            foreach (var pe in elementerIAktuelLag)
+            {
+                // Tag højde for rotation
+                int elementBredde = pe.ErRoteret ? pe.Element.Hoejde : pe.Element.Bredde;
+                brugtBredde += elementBredde;
+            }
 
-            // Ellers start nyt lag
+            // Tjek om nyt element kan passe i resterende plads
+            int nyElementBredde = element.Bredde; // Antager ikke roteret for nu
+            int tilgaengeligBredde = palle.Laengde + palle.Overmaal; // Palle længde er den primære dimension
+
+            if (brugtBredde + nyElementBredde <= tilgaengeligBredde)
+            {
+                // Der er plads i nuværende lag!
+                return aktuelLag;
+            }
+
+            // Ikke plads - start nyt lag
             return aktuelLag + 1;
         }
 
