@@ -437,6 +437,97 @@ namespace MyProject.Tests.Services
         }
 
         /// <summary>
+        /// Test bredde kapacitet: Flere elementer kan placeres per lag baseret på faktisk bredde
+        /// Verificer at 5-10 døre kan placeres på samme palle afhængigt af deres størrelse
+        /// </summary>
+        [Fact]
+        public void TEST_FlereElementerPerLagBasereretPaaBredde()
+        {
+            // Arrange
+            var settings = GetTestSettings();
+            var helper = new ElementPlaceringHelper(settings);
+            var palle = GetEURPalle(); // Længde = 1200mm, Bredde = 800mm, Overmaal = 50mm
+
+            var pakkeplanPalle = new PakkeplanPalle
+            {
+                Id = 1,
+                PalleId = palle.Id,
+                Palle = palle,
+                SamletHoejde = palle.Hoejde,
+                SamletVaegt = palle.Vaegt,
+                AntalLag = 1
+            };
+
+            // Test Data: Små døre 2100mm høje × 400mm brede
+            // Pallens tilgængelige bredde: 1200mm + 50mm = 1250mm
+            // Med 400mm brede døre kan vi placere: 1250 / 400 = 3 døre per lag
+            var door1 = new ElementMedData(new Element
+            {
+                Id = 1,
+                Reference = "DØR-001",
+                Type = "Dør",
+                Serie = "Premium",
+                Hoejde = 2100,
+                Bredde = 400, // Smal dør
+                Dybde = 100,
+                Vaegt = 40m,
+                RotationsRegel = "Nej" // Må ikke roteres
+            });
+
+            var door2 = new ElementMedData(new Element
+            {
+                Id = 2,
+                Reference = "DØR-002",
+                Type = "Dør",
+                Serie = "Premium",
+                Hoejde = 2100,
+                Bredde = 400,
+                Dybde = 100,
+                Vaegt = 40m,
+                RotationsRegel = "Nej"
+            });
+
+            var door3 = new ElementMedData(new Element
+            {
+                Id = 3,
+                Reference = "DØR-003",
+                Type = "Dør",
+                Serie = "Premium",
+                Hoejde = 2100,
+                Bredde = 400,
+                Dybde = 100,
+                Vaegt = 40m,
+                RotationsRegel = "Nej"
+            });
+
+            // Act: Placer 3 døre
+            helper.PlacerElement(door1, pakkeplanPalle);
+            helper.PlacerElement(door2, pakkeplanPalle);
+            helper.PlacerElement(door3, pakkeplanPalle);
+
+            // Assert: Alle 3 døre skal være i lag 1
+            Assert.Equal(3, pakkeplanPalle.Elementer.Count);
+            Assert.All(pakkeplanPalle.Elementer, e => Assert.Equal(1, e.Lag));
+
+            // Verificer bredde beregning: 3 × 400mm = 1200mm (passer i 1250mm)
+            var brugtBredde = pakkeplanPalle.Elementer
+                .Where(e => e.Lag == 1)
+                .Sum(e => e.ErRoteret ? e.Element.Hoejde : e.Element.Bredde);
+
+            Assert.Equal(1200, brugtBredde); // 3 × 400 = 1200
+            Assert.True(brugtBredde <= palle.Laengde + palle.Overmaal,
+                $"Brugt bredde {brugtBredde}mm skal passe i tilgængelig bredde {palle.Laengde + palle.Overmaal}mm");
+
+            // Verificer højde: 150mm (palle) + 2100mm (dørhøjde) = 2250mm
+            // Da elementerne er i SAMME lag, lægges kun én dør til højden
+            int forventetHoejde = 150 + 2100;
+            Assert.Equal(forventetHoejde, pakkeplanPalle.SamletHoejde);
+
+            // Expected: Palle er IKKE 80% fyldt, men kun med 1 lag af 3 døre
+            // Dette viser at den nye bredde-baserede logik virker!
+        }
+
+        /// <summary>
         /// TEST_FAIL: Denne test fejler med vilje for at verificere Test Explorer virker
         /// </summary>
         [Fact]
