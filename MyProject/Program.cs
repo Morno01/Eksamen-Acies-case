@@ -144,3 +144,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+// Gør Program klassen tilgængelig for integration/system tests
+public partial class Program { }
