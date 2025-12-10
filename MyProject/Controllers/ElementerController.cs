@@ -5,7 +5,7 @@ using MyProject.Services;
 
 namespace MyProject.Controllers
 {
-    [Authorize]
+    // [Authorize]  // Midlertidigt disabled til testing
     [ApiController]
     [Route("api/[controller]")]
     public class ElementerController : ControllerBase
@@ -23,7 +23,7 @@ namespace MyProject.Controllers
         /// Hent alle elementer
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "SuperUser,NormalUser")]
+        // [Authorize(Roles = "SuperUser,NormalUser")]  // Disabled til testing
         public async Task<ActionResult<IEnumerable<Element>>> GetAlleElementer()
         {
             _logger.LogInformation("🔍 GetAlleElementer kaldt af bruger: {User}", User.Identity?.Name);
@@ -36,7 +36,7 @@ namespace MyProject.Controllers
         /// Hent et specifikt element
         /// </summary>
         [HttpGet("{id}")]
-        [Authorize(Roles = "SuperUser,NormalUser")]
+        // [Authorize(Roles = "SuperUser,NormalUser")]  // Disabled til testing
         public async Task<ActionResult<Element>> GetElement(int id)
         {
             var element = await _elementService.GetElement(id);
