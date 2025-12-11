@@ -16,16 +16,16 @@ namespace MyProject.Services
 
         public List<ElementMedData> SorterElementer(List<Element> elementer)
         {
-            // Konverter til ElementMedData for at holde ekstra information
+           
             var elementerMedData = elementer.Select(e => new ElementMedData(e)).ToList();
 
-            // Parse sorteringsprioriteringen
+           
             var prioriteter = _settings.SorteringsPrioritering
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(p => p.Trim())
                 .ToList();
 
-            // Byg IOrderedEnumerable baseret på prioriteter
+           
             IOrderedEnumerable<ElementMedData>? sorteret = null;
 
             foreach (var prioritet in prioriteter)

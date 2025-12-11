@@ -31,7 +31,7 @@ namespace MyProject.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
-            // Debug logging
+           
             Console.WriteLine($"Login POST called");
             Console.WriteLine($"Email: '{model?.Email ?? "null"}'");
             Console.WriteLine($"Password length: {model?.Password?.Length ?? 0}");
@@ -94,7 +94,7 @@ namespace MyProject.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Tilføj til NormalUser rolle som standard
+                   
                     await _userManager.AddToRoleAsync(user, "NormalUser");
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
