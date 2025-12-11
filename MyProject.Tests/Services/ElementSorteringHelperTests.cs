@@ -49,7 +49,6 @@ namespace MyProject.Tests.Services
         [Fact]
         public void SorterElementer_SortererEfterMaerke()
         {
-            // Arrange
             var settings = new PalleOptimeringSettings
             {
                 SorteringsPrioritering = "Maerke"
@@ -57,10 +56,8 @@ namespace MyProject.Tests.Services
             var helper = new ElementSorteringHelper(settings);
             var elementer = GetTestElementer();
 
-            // Act
             var sorteret = helper.SorterElementer(elementer);
 
-            // Assert
             Assert.Equal("A", sorteret[0].Element.Maerke);
             Assert.Equal("A", sorteret[1].Element.Maerke);
             Assert.Equal("B", sorteret[2].Element.Maerke);
@@ -69,7 +66,6 @@ namespace MyProject.Tests.Services
         [Fact]
         public void SorterElementer_SortererEfterSpecialelement()
         {
-            // Arrange
             var settings = new PalleOptimeringSettings
             {
                 SorteringsPrioritering = "Specialelement"
@@ -77,10 +73,8 @@ namespace MyProject.Tests.Services
             var helper = new ElementSorteringHelper(settings);
             var elementer = GetTestElementer();
 
-            // Act
             var sorteret = helper.SorterElementer(elementer);
 
-            // Assert
             Assert.True(sorteret[0].Element.ErSpecialelement);
             Assert.False(sorteret[1].Element.ErSpecialelement);
             Assert.False(sorteret[2].Element.ErSpecialelement);
@@ -89,7 +83,6 @@ namespace MyProject.Tests.Services
         [Fact]
         public void SorterElementer_SortererEfterElementstorrelse()
         {
-            // Arrange
             var settings = new PalleOptimeringSettings
             {
                 SorteringsPrioritering = "Elementstorrelse"
@@ -97,22 +90,16 @@ namespace MyProject.Tests.Services
             var helper = new ElementSorteringHelper(settings);
             var elementer = GetTestElementer();
 
-            // Act
             var sorteret = helper.SorterElementer(elementer);
 
-            // Assert
-            // Størst først (2200 * 900 = 1980000)
             Assert.Equal(3, sorteret[0].Element.Id);
-            // Derefter (2000 * 800 = 1600000)
             Assert.Equal(1, sorteret[1].Element.Id);
-            // Mindst (1800 * 700 = 1260000)
             Assert.Equal(2, sorteret[2].Element.Id);
         }
 
         [Fact]
         public void SorterElementer_SortererEfterVaegt()
         {
-            // Arrange
             var settings = new PalleOptimeringSettings
             {
                 SorteringsPrioritering = "Vaegt"
@@ -120,10 +107,8 @@ namespace MyProject.Tests.Services
             var helper = new ElementSorteringHelper(settings);
             var elementer = GetTestElementer();
 
-            // Act
             var sorteret = helper.SorterElementer(elementer);
 
-            // Assert
             Assert.Equal(60m, sorteret[0].Element.Vaegt);
             Assert.Equal(50m, sorteret[1].Element.Vaegt);
             Assert.Equal(45m, sorteret[2].Element.Vaegt);
@@ -132,7 +117,6 @@ namespace MyProject.Tests.Services
         [Fact]
         public void SorterElementer_SortererEfterFlerePrioriteter()
         {
-            // Arrange
             var settings = new PalleOptimeringSettings
             {
                 SorteringsPrioritering = "Maerke,Serie"
@@ -140,17 +124,12 @@ namespace MyProject.Tests.Services
             var helper = new ElementSorteringHelper(settings);
             var elementer = GetTestElementer();
 
-            // Act
             var sorteret = helper.SorterElementer(elementer);
 
-            // Assert
-            // Først mærke A, serie S1
             Assert.Equal("A", sorteret[0].Element.Maerke);
             Assert.Equal("S1", sorteret[0].Element.Serie);
-            // Så mærke A, serie S2
             Assert.Equal("A", sorteret[1].Element.Maerke);
             Assert.Equal("S2", sorteret[1].Element.Serie);
-            // Sidst mærke B
             Assert.Equal("B", sorteret[2].Element.Maerke);
         }
     }

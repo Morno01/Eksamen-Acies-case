@@ -43,7 +43,6 @@ namespace MyProject.Tests.Services
         [Fact]
         public void KanPlaceresPaaPalle_MedGyldigElement_ReturnererTrue()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -67,17 +66,14 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             var resultat = helper.KanPlaceresPaaPalle(element, pakkeplanPalle, palle);
 
-            // Assert
             Assert.True(resultat);
         }
 
         [Fact]
         public void KanPlaceresPaaPalle_MedForTungtElement_ReturnererFalse()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -87,7 +83,7 @@ namespace MyProject.Tests.Services
                 Hoejde = 2000,
                 Bredde = 700,
                 Dybde = 100,
-                Vaegt = 1000m, // For tungt!
+                Vaegt = 1000m,
                 RotationsRegel = "Ja"
             });
 
@@ -101,17 +97,14 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             var resultat = helper.KanPlaceresPaaPalle(element, pakkeplanPalle, palle);
 
-            // Assert
             Assert.False(resultat);
         }
 
         [Fact]
         public void KanPlaceresPaaPalle_MedForHoejtElement_ReturnererFalse()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -120,7 +113,7 @@ namespace MyProject.Tests.Services
                 Id = 1,
                 Hoejde = 2000,
                 Bredde = 700,
-                Dybde = 3000, // For højt!
+                Dybde = 3000,
                 Vaegt = 45m,
                 RotationsRegel = "Ja"
             });
@@ -135,17 +128,14 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             var resultat = helper.KanPlaceresPaaPalle(element, pakkeplanPalle, palle);
 
-            // Assert
             Assert.False(resultat);
         }
 
         [Fact]
         public void PlacerElement_TilfojerElementTilPalle()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -169,10 +159,8 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
             Assert.Single(pakkeplanPalle.Elementer);
             Assert.Equal(palle.Vaegt + element.Element.Vaegt, pakkeplanPalle.SamletVaegt);
             Assert.Equal(palle.Hoejde + element.Element.Hoejde, pakkeplanPalle.SamletHoejde);
@@ -181,7 +169,6 @@ namespace MyProject.Tests.Services
         [Fact]
         public void KanPlaceresPaaPalle_MedForkertPalletype_ReturnererFalse()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -193,7 +180,7 @@ namespace MyProject.Tests.Services
                 Dybde = 100,
                 Vaegt = 45m,
                 RotationsRegel = "Ja",
-                KraeverPalletype = "Alu" // Kræver anden palletype
+                KraeverPalletype = "Alu"
             });
 
             var pakkeplanPalle = new PakkeplanPalle
@@ -206,19 +193,14 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             var resultat = helper.KanPlaceresPaaPalle(element, pakkeplanPalle, palle);
 
-            // Assert
             Assert.False(resultat);
         }
-
-        #region Rotation og Vendning Tests
 
         [Fact]
         public void SkalElementRoteres_MedRotationsRegelNej_ReturnererFalse()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -229,7 +211,7 @@ namespace MyProject.Tests.Services
                 Bredde = 900,
                 Dybde = 100,
                 Vaegt = 45m,
-                RotationsRegel = "Nej" // Må IKKE roteres
+                RotationsRegel = "Nej"
             });
 
             var pakkeplanPalle = new PakkeplanPalle
@@ -242,18 +224,15 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
             var placeret = pakkeplanPalle.Elementer.First();
-            Assert.False(placeret.ErRoteret, "Element med RotationsRegel='Nej' må ikke roteres");
+            Assert.False(placeret.ErRoteret);
         }
 
         [Fact]
         public void SkalElementRoteres_MedRotationsRegelSkal_ReturnererTrue()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -264,7 +243,7 @@ namespace MyProject.Tests.Services
                 Bredde = 900,
                 Dybde = 100,
                 Vaegt = 45m,
-                RotationsRegel = "Skal" // SKAL roteres
+                RotationsRegel = "Skal"
             });
 
             var pakkeplanPalle = new PakkeplanPalle
@@ -277,20 +256,17 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
             var placeret = pakkeplanPalle.Elementer.First();
-            Assert.True(placeret.ErRoteret, "Element med RotationsRegel='Skal' skal altid roteres");
+            Assert.True(placeret.ErRoteret);
         }
 
         [Fact]
         public void SkalElementRoteres_TungtElement_RotererIkke()
         {
-            // Arrange
             var settings = GetTestSettings();
-            settings.TilladVendeOpTilMaksKg = 50m; // Maks 50 kg må vendes
+            settings.TilladVendeOpTilMaksKg = 50m;
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
             var element = new ElementMedData(new Element
@@ -299,7 +275,7 @@ namespace MyProject.Tests.Services
                 Hoejde = 2000,
                 Bredde = 900,
                 Dybde = 100,
-                Vaegt = 75m, // Over 50kg grænse
+                Vaegt = 75m,
                 RotationsRegel = "Ja"
             });
 
@@ -313,31 +289,28 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
             var placeret = pakkeplanPalle.Elementer.First();
-            Assert.False(placeret.ErRoteret, "Tungt element (>50kg) roteres ikke automatisk");
+            Assert.False(placeret.ErRoteret);
         }
 
         [Fact]
         public void SkalElementRoteres_TungtElementMenMaksHoejdeOverskrides_Roterer()
         {
-            // Arrange
             var settings = GetTestSettings();
             settings.TilladVendeOpTilMaksKg = 50m;
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
-            palle.MaksHoejde = 500; // Lav maksimal højde
+            palle.MaksHoejde = 500;
 
             var element = new ElementMedData(new Element
             {
                 Id = 1,
-                Hoejde = 600, // Højere end MaksHoejde
+                Hoejde = 600,
                 Bredde = 200,
                 Dybde = 100,
-                Vaegt = 75m, // Over 50kg grænse
+                Vaegt = 75m,
                 RotationsRegel = "Ja"
             });
 
@@ -351,18 +324,15 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
             var placeret = pakkeplanPalle.Elementer.First();
-            Assert.True(placeret.ErRoteret, "Tungt element roteres alligevel når makshøjde overskrides");
+            Assert.True(placeret.ErRoteret);
         }
 
         [Fact]
         public void SkalElementRoteres_LetElementMedStandardOrientering_RotererIkke()
         {
-            // Arrange
             var settings = GetTestSettings();
             settings.TilladVendeOpTilMaksKg = 50m;
             var helper = new ElementPlaceringHelper(settings);
@@ -370,44 +340,8 @@ namespace MyProject.Tests.Services
             var element = new ElementMedData(new Element
             {
                 Id = 1,
-                Hoejde = 2000, // Højere end bredde
+                Hoejde = 2000,
                 Bredde = 900,
-                Dybde = 100,
-                Vaegt = 30m, // Let element
-                RotationsRegel = "Ja"
-            });
-
-            var pakkeplanPalle = new PakkeplanPalle
-            {
-                Id = 1,
-                PalleId = palle.Id,
-                Palle = palle,
-                SamletHoejde = palle.Hoejde,
-                SamletVaegt = palle.Vaegt,
-                AntalLag = 1
-            };
-
-            // Act
-            helper.PlacerElement(element, pakkeplanPalle);
-
-            // Assert
-            var placeret = pakkeplanPalle.Elementer.First();
-            Assert.False(placeret.ErRoteret, "Element hvor Hoejde > Bredde placeres uden rotation");
-        }
-
-        [Fact]
-        public void SkalElementRoteres_LetElementBredereEndHoejt_Roterer()
-        {
-            // Arrange
-            var settings = GetTestSettings();
-            settings.TilladVendeOpTilMaksKg = 50m;
-            var helper = new ElementPlaceringHelper(settings);
-            var palle = GetTestPalle();
-            var element = new ElementMedData(new Element
-            {
-                Id = 1,
-                Hoejde = 900,  // Lavere end bredde
-                Bredde = 2000, // Bredere end højde
                 Dybde = 100,
                 Vaegt = 30m,
                 RotationsRegel = "Ja"
@@ -423,35 +357,28 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
             var placeret = pakkeplanPalle.Elementer.First();
-            Assert.True(placeret.ErRoteret, "Element hvor Bredde > Hoejde roteres til korteste side");
+            Assert.False(placeret.ErRoteret);
         }
 
         [Fact]
-        public void SkalElementRoteres_HoejdeBreddefaktor_RotererSmaltElement()
+        public void SkalElementRoteres_LetElementBredereEndHoejt_Roterer()
         {
-            // Arrange
             var settings = GetTestSettings();
-            settings.TilladVendeOpTilMaksKg = 100m;
-            settings.HoejdeBreddefaktor = 0.3m; // Faktor < 0.3 roteres
-            settings.HoejdeBreddefaktorKunForEnkeltElementer = false; // Gælder altid
+            settings.TilladVendeOpTilMaksKg = 50m;
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
-
             var element = new ElementMedData(new Element
             {
                 Id = 1,
-                Hoejde = 3000, // Meget langt
-                Bredde = 600,  // Smalt
+                Hoejde = 900,
+                Bredde = 2000,
                 Dybde = 100,
-                Vaegt = 40m,
+                Vaegt = 30m,
                 RotationsRegel = "Ja"
             });
-            // Faktor = 600/3000 = 0.2 < 0.3 → Skal roteres
 
             var pakkeplanPalle = new PakkeplanPalle
             {
@@ -463,26 +390,58 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
             var placeret = pakkeplanPalle.Elementer.First();
-            Assert.True(placeret.ErRoteret, "Smalt element (faktor 0.2 < 0.3) skal lægges ned");
+            Assert.True(placeret.ErRoteret);
+        }
+
+        [Fact]
+        public void SkalElementRoteres_HoejdeBreddefaktor_RotererSmaltElement()
+        {
+            var settings = GetTestSettings();
+            settings.TilladVendeOpTilMaksKg = 100m;
+            settings.HoejdeBreddefaktor = 0.3m;
+            settings.HoejdeBreddefaktorKunForEnkeltElementer = false;
+            var helper = new ElementPlaceringHelper(settings);
+            var palle = GetTestPalle();
+
+            var element = new ElementMedData(new Element
+            {
+                Id = 1,
+                Hoejde = 3000,
+                Bredde = 600,
+                Dybde = 100,
+                Vaegt = 40m,
+                RotationsRegel = "Ja"
+            });
+
+            var pakkeplanPalle = new PakkeplanPalle
+            {
+                Id = 1,
+                PalleId = palle.Id,
+                Palle = palle,
+                SamletHoejde = palle.Hoejde,
+                SamletVaegt = palle.Vaegt,
+                AntalLag = 1
+            };
+
+            helper.PlacerElement(element, pakkeplanPalle);
+
+            var placeret = pakkeplanPalle.Elementer.First();
+            Assert.True(placeret.ErRoteret);
         }
 
         [Fact]
         public void SkalElementRoteres_HoejdeBreddefaktorKunForsteElement_IkkeRotererAndretElement()
         {
-            // Arrange
             var settings = GetTestSettings();
             settings.TilladVendeOpTilMaksKg = 100m;
             settings.HoejdeBreddefaktor = 0.3m;
-            settings.HoejdeBreddefaktorKunForEnkeltElementer = true; // Kun første element
+            settings.HoejdeBreddefaktorKunForEnkeltElementer = true;
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
 
-            // Først element - normalt
             var element1 = new ElementMedData(new Element
             {
                 Id = 1,
@@ -493,12 +452,11 @@ namespace MyProject.Tests.Services
                 RotationsRegel = "Ja"
             });
 
-            // Andet element - smalt (ville normalt roteres)
             var element2 = new ElementMedData(new Element
             {
                 Id = 2,
-                Hoejde = 3000, // Meget langt
-                Bredde = 600,  // Smalt
+                Hoejde = 3000,
+                Bredde = 600,
                 Dybde = 100,
                 Vaegt = 40m,
                 RotationsRegel = "Ja"
@@ -514,20 +472,16 @@ namespace MyProject.Tests.Services
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element1, pakkeplanPalle);
             helper.PlacerElement(element2, pakkeplanPalle);
 
-            // Assert
             var placeret2 = pakkeplanPalle.Elementer.Last();
-            Assert.False(placeret2.ErRoteret,
-                "Andet element roteres ikke når HoejdeBreddefaktorKunForEnkeltElementer=true");
+            Assert.False(placeret2.ErRoteret);
         }
 
         [Fact]
         public void PlacerElement_BeregnerKorrektPallehoedjeMedRotation()
         {
-            // Arrange
             var settings = GetTestSettings();
             var helper = new ElementPlaceringHelper(settings);
             var palle = GetTestPalle();
@@ -535,9 +489,9 @@ namespace MyProject.Tests.Services
             var element = new ElementMedData(new Element
             {
                 Id = 1,
-                Hoejde = 2100, // Dette er højden der tæller når oprejst
+                Hoejde = 2100,
                 Bredde = 900,
-                Dybde = 100,   // Dette er tykkelsen (ikke relevant for højde)
+                Dybde = 100,
                 Vaegt = 45m,
                 RotationsRegel = "Ja"
             });
@@ -547,21 +501,15 @@ namespace MyProject.Tests.Services
                 Id = 1,
                 PalleId = palle.Id,
                 Palle = palle,
-                SamletHoejde = palle.Hoejde, // 150 mm
+                SamletHoejde = palle.Hoejde,
                 SamletVaegt = palle.Vaegt,
                 AntalLag = 1
             };
 
-            // Act
             helper.PlacerElement(element, pakkeplanPalle);
 
-            // Assert
-            int forventetHoejde = palle.Hoejde + element.Element.Hoejde; // 150 + 2100 = 2250
+            int forventetHoejde = palle.Hoejde + element.Element.Hoejde;
             Assert.Equal(forventetHoejde, pakkeplanPalle.SamletHoejde);
-            Assert.Equal("Element højde skal lægges til pallehøjde (ikke Dybde)",
-                         forventetHoejde.ToString(), pakkeplanPalle.SamletHoejde.ToString());
         }
-
-        #endregion
     }
 }

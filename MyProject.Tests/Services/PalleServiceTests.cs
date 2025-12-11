@@ -16,7 +16,6 @@ namespace MyProject.Tests.Services
 
             var context = new PalleOptimeringContext(options);
 
-            // Seed test data
             context.Paller.AddRange(
                 new Palle
                 {
@@ -55,14 +54,11 @@ namespace MyProject.Tests.Services
         [Fact]
         public async Task GetAlleAktivePaller_ReturnererKunAktivePaller()
         {
-            // Arrange
             var context = GetInMemoryContext();
             var service = new PalleService(context);
 
-            // Act
             var resultat = await service.GetAlleAktivePaller();
 
-            // Assert
             Assert.Single(resultat);
             Assert.All(resultat, p => Assert.True(p.Aktiv));
         }
@@ -70,28 +66,22 @@ namespace MyProject.Tests.Services
         [Fact]
         public async Task GetAllePaller_ReturnererAllePaller()
         {
-            // Arrange
             var context = GetInMemoryContext();
             var service = new PalleService(context);
 
-            // Act
             var resultat = await service.GetAllePaller();
 
-            // Assert
             Assert.Equal(2, resultat.Count());
         }
 
         [Fact]
         public async Task GetPalle_MedGyldigId_ReturnererPalle()
         {
-            // Arrange
             var context = GetInMemoryContext();
             var service = new PalleService(context);
 
-            // Act
             var resultat = await service.GetPalle(1);
 
-            // Assert
             Assert.NotNull(resultat);
             Assert.Equal("Test Palle 1", resultat.PalleBeskrivelse);
         }
@@ -99,21 +89,17 @@ namespace MyProject.Tests.Services
         [Fact]
         public async Task GetPalle_MedUgyldigId_ReturnererNull()
         {
-            // Arrange
             var context = GetInMemoryContext();
             var service = new PalleService(context);
 
-            // Act
             var resultat = await service.GetPalle(999);
 
-            // Assert
             Assert.Null(resultat);
         }
 
         [Fact]
         public async Task OpretPalle_TilfojerNyPalle()
         {
-            // Arrange
             var context = GetInMemoryContext();
             var service = new PalleService(context);
             var nyPalle = new Palle
@@ -130,10 +116,8 @@ namespace MyProject.Tests.Services
                 Sortering = 3
             };
 
-            // Act
             var resultat = await service.OpretPalle(nyPalle);
 
-            // Assert
             Assert.NotNull(resultat);
             Assert.True(resultat.Id > 0);
             Assert.Equal("Ny Test Palle", resultat.PalleBeskrivelse);
@@ -142,31 +126,25 @@ namespace MyProject.Tests.Services
         [Fact]
         public async Task OpdaterPalle_OpdatererEksisterendePalle()
         {
-            // Arrange
             var context = GetInMemoryContext();
             var service = new PalleService(context);
             var palle = await service.GetPalle(1);
             palle!.PalleBeskrivelse = "Opdateret Beskrivelse";
 
-            // Act
             var resultat = await service.OpdaterPalle(palle);
 
-            // Assert
             Assert.Equal("Opdateret Beskrivelse", resultat.PalleBeskrivelse);
         }
 
         [Fact]
         public async Task SletPalle_FjernerPalle()
         {
-            // Arrange
             var context = GetInMemoryContext();
             var service = new PalleService(context);
 
-            // Act
             var resultat = await service.SletPalle(1);
             var slettetPalle = await service.GetPalle(1);
 
-            // Assert
             Assert.True(resultat);
             Assert.Null(slettetPalle);
         }
