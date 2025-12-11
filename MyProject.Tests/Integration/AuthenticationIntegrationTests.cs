@@ -9,10 +9,6 @@ using Xunit;
 
 namespace MyProject.Tests.Integration
 {
-    /// <summary>
-    /// Authentication Integration Tests
-    /// Tester login/authentication flow med ASP.NET Core Identity
-    /// </summary>
     public class AuthenticationIntegrationTests : IDisposable
     {
         private readonly PalleOptimeringContext _context;
@@ -22,14 +18,11 @@ namespace MyProject.Tests.Integration
 
         public AuthenticationIntegrationTests()
         {
-            // Setup services
             var services = new ServiceCollection();
 
-            // InMemory database
             services.AddDbContext<PalleOptimeringContext>(options =>
                 options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
-            // Identity setup
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = false;
@@ -48,22 +41,15 @@ namespace MyProject.Tests.Integration
             _userManager = _serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             _signInManager = _serviceProvider.GetRequiredService<SignInManager<ApplicationUser>>();
 
-            // Ensure database created
             _context.Database.EnsureCreated();
         }
 
         /// <summary>
-        /// SCRUM-76: TC6-INT-002 - Test login flow
-        /// Test Step 1-9: Login authentication med korrekt og forkert credentials
-        ///
-        /// NOTE: Dette er en backend integration test.
-        /// For fuld UI test (step 2-3: "Åbn login side", "Klik Login knap"),
-        /// brug E2E test framework som Selenium eller Playwright.
+        /// SCRUM-76: TC6-INT-002
         /// </summary>
         [Fact]
         public async Task SCRUM76_TestLoginFlow()
         {
-            // Test Step 1: Forbered test bruger
             var testUser = new ApplicationUser
             {
                 UserName = "testuser@acies.dk",
@@ -74,17 +60,7 @@ namespace MyProject.Tests.Integration
 
             var createResult = await _userManager.CreateAsync(testUser, "Test1234");
             Assert.True(createResult.Succeeded, "Test bruger skulle oprettes");
-            // Expected: Bruger findes i database ✓
 
-            // Test Step 2-4 (UI steps simuleret via backend)
-            // I en rigtig app ville dette være:
-            // - Åbn login side (GET /Account/Login)
-            // - Indtast credentials i formular
-            // - Klik Login knap (POST /Account/Login)
-            //
-            // Her tester vi backend login logikken direkte:
-
-            // Test Step 5: Verificer bruger kan logge ind med korrekte credentials
             var passwordSignInResult = await _signInManager.PasswordSignInAsync(
                 "testuser@acies.dk",
                 "Test1234",
@@ -92,26 +68,16 @@ namespace MyProject.Tests.Integration
                 lockoutOnFailure: false);
 
             Assert.True(passwordSignInResult.Succeeded);
-            // Expected: Login SUCCESS, Bruger logget ind ✓
 
-            // Verificer bruger findes
             var loggedInUser = await _userManager.FindByEmailAsync("testuser@acies.dk");
             Assert.NotNull(loggedInUser);
             Assert.Equal("Test Bruger", loggedInUser.FullName);
-            // Expected: Bruger navn vises: "testuser@acies.dk" ✓
 
-            // Test Step 6: Test beskyttet side
-            // I rigtig app ville dette teste at user kan tilgå dashboard
-            // Her verificerer vi at brugeren er authenticated
             var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(loggedInUser);
             Assert.True(isEmailConfirmed);
-            // Expected: User har adgang (email confirmed) ✓
 
-            // Test Step 7: Log ud
             await _signInManager.SignOutAsync();
-            // Expected: Bruger logged ud, Session cleared ✓
 
-            // Test Step 8: Test forkert password
             var wrongPasswordResult = await _signInManager.PasswordSignInAsync(
                 "testuser@acies.dk",
                 "ForkertPassword123",
@@ -119,10 +85,7 @@ namespace MyProject.Tests.Integration
                 lockoutOnFailure: false);
 
             Assert.False(wrongPasswordResult.Succeeded);
-            // Expected: Login fejler, Fejlbesked: "Ugyldigt login forsøg"
-            // Bruger IKKE logget ind ✓
 
-            // Test Step 9: Test ikke-eksisterende bruger
             var nonExistentUserResult = await _signInManager.PasswordSignInAsync(
                 "ikkeeksisterende@acies.dk",
                 "Test1234",
@@ -130,17 +93,14 @@ namespace MyProject.Tests.Integration
                 lockoutOnFailure: false);
 
             Assert.False(nonExistentUserResult.Succeeded);
-            // Expected: Login fejler, Fejlbesked: "Ugyldigt login forsøg"
-            // Bruger IKKE logget ind ✓
         }
 
         /// <summary>
-        /// TC6-INT-007: Test bruger registrering
+        /// TC6-INT-007
         /// </summary>
         [Fact]
         public async Task TC6INT007_BrugerRegistrering()
         {
-            // Arrange
             var newUser = new ApplicationUser
             {
                 UserName = "nybruger@acies.dk",
@@ -148,10 +108,8 @@ namespace MyProject.Tests.Integration
                 FullName = "Ny Bruger"
             };
 
-            // Act
             var result = await _userManager.CreateAsync(newUser, "Password123");
 
-            // Assert
             Assert.True(result.Succeeded);
 
             var savedUser = await _userManager.FindByEmailAsync("nybruger@acies.dk");
@@ -160,12 +118,11 @@ namespace MyProject.Tests.Integration
         }
 
         /// <summary>
-        /// TC6-INT-008: Test password krav
+        /// TC6-INT-008
         /// </summary>
         [Fact]
         public async Task TC6INT008_PasswordKrav()
         {
-            // Arrange
             var user = new ApplicationUser
             {
                 UserName = "passtest@acies.dk",
@@ -173,21 +130,18 @@ namespace MyProject.Tests.Integration
                 FullName = "Password Test"
             };
 
-            // Act - Prøv med for svagt password (i dette test setup er minimum 4 chars)
-            var weakResult = await _userManager.CreateAsync(user, "123"); // Kun 3 chars
+            var weakResult = await _userManager.CreateAsync(user, "123");
 
-            // Assert
             Assert.False(weakResult.Succeeded);
             Assert.Contains(weakResult.Errors, e => e.Code.Contains("Password"));
         }
 
         /// <summary>
-        /// TC6-INT-009: Test email uniqueness
+        /// TC6-INT-009
         /// </summary>
         [Fact]
         public async Task TC6INT009_EmailUniqueness()
         {
-            // Arrange
             var user1 = new ApplicationUser
             {
                 UserName = "unique1@acies.dk",
@@ -198,20 +152,20 @@ namespace MyProject.Tests.Integration
             var user2 = new ApplicationUser
             {
                 UserName = "unique2@acies.dk",
-                Email = "duplicate@acies.dk", // Samme email!
+                Email = "duplicate@acies.dk",
                 FullName = "User 2"
             };
 
-            // Act
             var result1 = await _userManager.CreateAsync(user1, "Pass123");
             var result2 = await _userManager.CreateAsync(user2, "Pass456");
 
-            // Assert
             Assert.True(result1.Succeeded);
-            Assert.False(result2.Succeeded); // Duplicate email skal fejle
+            Assert.False(result2.Succeeded);
         }
 
-
+        public void Dispose()
+        {
+            _context.Dispose();
         }
     }
 }
