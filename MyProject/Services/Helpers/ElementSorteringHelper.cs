@@ -2,9 +2,7 @@ using MyProject.Models;
 
 namespace MyProject.Services
 {
-    /// <summary>
-    /// Helper klasse til at sortere elementer efter optimerings kriterier
-    /// </summary>
+
     public class ElementSorteringHelper
     {
         private readonly PalleOptimeringSettings _settings;
@@ -16,16 +14,16 @@ namespace MyProject.Services
 
         public List<ElementMedData> SorterElementer(List<Element> elementer)
         {
-            // Konverter til ElementMedData for at holde ekstra information
+
             var elementerMedData = elementer.Select(e => new ElementMedData(e)).ToList();
 
-            // Parse sorteringsprioriteringen
+
             var prioriteter = _settings.SorteringsPrioritering
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(p => p.Trim())
                 .ToList();
 
-            // Byg IOrderedEnumerable baseret på prioriteter
+
             IOrderedEnumerable<ElementMedData>? sorteret = null;
 
             foreach (var prioritet in prioriteter)
@@ -64,9 +62,7 @@ namespace MyProject.Services
         }
     }
 
-    /// <summary>
-    /// Wrapper klasse til at holde element og ekstra data under optimering
-    /// </summary>
+
     public class ElementMedData
     {
         public Element Element { get; set; }

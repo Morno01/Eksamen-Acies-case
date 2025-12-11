@@ -15,7 +15,7 @@ namespace MyProject.Data
 
             logger.LogInformation("🔧 DbInitializer startet...");
 
-            // Opret roller
+
             string[] roleNames = { "SuperUser", "NormalUser" };
             foreach (var roleName in roleNames)
             {
@@ -25,7 +25,7 @@ namespace MyProject.Data
                 }
             }
 
-            // Opret SuperUser
+
             var superUserEmail = "admin@acies.dk";
             var superUser = await userManager.FindByEmailAsync(superUserEmail);
 
@@ -47,7 +47,7 @@ namespace MyProject.Data
                 }
             }
 
-            // Opret Normal User
+
             var normalUserEmail = "bruger@acies.dk";
             var normalUser = await userManager.FindByEmailAsync(normalUserEmail);
 
@@ -69,7 +69,7 @@ namespace MyProject.Data
                 }
             }
 
-            // Seed test elementer hvis der ikke er nogen
+
             logger.LogInformation("📦 Tjekker om der er elementer i databasen...");
             var existingCount = await context.Elementer.CountAsync();
             logger.LogInformation($"📊 Fandt {existingCount} eksisterende elementer");

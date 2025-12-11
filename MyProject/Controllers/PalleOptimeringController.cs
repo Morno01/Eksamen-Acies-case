@@ -17,9 +17,7 @@ namespace MyProject.Controllers
             _optimeringService = optimeringService;
         }
 
-        /// <summary>
-        /// Generer en pakkeplan baseret på elementer
-        /// </summary>
+
         [HttpPost("generer")]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<PakkeplanResultat>> GenererPakkeplan([FromBody] PakkeplanRequest request)
@@ -38,9 +36,7 @@ namespace MyProject.Controllers
             return Ok(resultat);
         }
 
-        /// <summary>
-        /// Hent alle pakkeplaner
-        /// </summary>
+
         [HttpGet("pakkeplaner")]
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult> GetAllePakkeplaner()
@@ -49,9 +45,7 @@ namespace MyProject.Controllers
             return Ok(pakkeplaner);
         }
 
-        /// <summary>
-        /// Hent en specifik pakkeplan
-        /// </summary>
+
         [HttpGet("pakkeplaner/{id}")]
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult> GetPakkeplan(int id)

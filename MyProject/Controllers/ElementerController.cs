@@ -19,9 +19,7 @@ namespace MyProject.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Hent alle elementer
-        /// </summary>
+
         [HttpGet]
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<IEnumerable<Element>>> GetAlleElementer()
@@ -32,9 +30,7 @@ namespace MyProject.Controllers
             return Ok(elementer);
         }
 
-        /// <summary>
-        /// Hent et specifikt element
-        /// </summary>
+
         [HttpGet("{id}")]
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<Element>> GetElement(int id)
@@ -46,9 +42,7 @@ namespace MyProject.Controllers
             return Ok(element);
         }
 
-        /// <summary>
-        /// Opret et nyt element
-        /// </summary>
+
         [HttpPost]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Element>> OpretElement([FromBody] Element element)
@@ -60,9 +54,7 @@ namespace MyProject.Controllers
             return CreatedAtAction(nameof(GetElement), new { id = oprettetElement.Id }, oprettetElement);
         }
 
-        /// <summary>
-        /// Opret flere elementer på én gang
-        /// </summary>
+
         [HttpPost("bulk")]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<IEnumerable<Element>>> OpretFlereElementer([FromBody] IEnumerable<Element> elementer)
@@ -74,9 +66,7 @@ namespace MyProject.Controllers
             return Ok(oprettedeElementer);
         }
 
-        /// <summary>
-        /// Opdater et eksisterende element
-        /// </summary>
+
         [HttpPut("{id}")]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Element>> OpdaterElement(int id, [FromBody] Element element)
@@ -95,9 +85,7 @@ namespace MyProject.Controllers
             return Ok(opdateretElement);
         }
 
-        /// <summary>
-        /// Slet et element
-        /// </summary>
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult> SletElement(int id)
@@ -109,9 +97,7 @@ namespace MyProject.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Force seed test elementer (kun til debugging)
-        /// </summary>
+
         [HttpPost("force-seed")]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult> ForceSeedElementer()

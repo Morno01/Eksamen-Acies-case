@@ -1,8 +1,6 @@
 namespace MyProject.Services.DTOs
 {
-    /// <summary>
-    /// Resultat af pakkeplan generering
-    /// </summary>
+
     public class PakkeplanResultat
     {
         public int PakkeplanId { get; set; }

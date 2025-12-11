@@ -4,9 +4,7 @@ using MyProject.Models;
 
 namespace MyProject.Data
 {
-    /// <summary>
-    /// Database context for palleoptimering systemet
-    /// </summary>
+
     public class PalleOptimeringContext : IdentityDbContext<ApplicationUser>
     {
         public PalleOptimeringContext(DbContextOptions<PalleOptimeringContext> options)
@@ -25,7 +23,7 @@ namespace MyProject.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Konfigurer decimal precision
+
             modelBuilder.Entity<Palle>()
                 .Property(p => p.Vaegt)
                 .HasPrecision(18, 2);
@@ -58,7 +56,7 @@ namespace MyProject.Data
                 .Property(p => p.SamletVaegt)
                 .HasPrecision(18, 2);
 
-            // Seed data - standard paller
+
             modelBuilder.Entity<Palle>().HasData(
                 new Palle
                 {
@@ -113,19 +111,19 @@ namespace MyProject.Data
                 }
             );
 
-            // Seed data - sample elementer med realistiske mål
+
             modelBuilder.Entity<Element>().HasData(
-                // Døre - Serie A
+
                 new Element
                 {
                     Id = 1,
                     Reference = "DØR-001",
                     Type = "Dør",
                     Serie = "Serie-A",
-                    Hoejde = 2100,  // Standard dør højde
-                    Bredde = 900,   // Standard dør bredde
-                    Dybde = 120,    // Dør tykkelse med karm
-                    Vaegt = 45m,    // Typisk vægt for træ/glas dør
+                    Hoejde = 2100,
+                    Bredde = 900,
+                    Dybde = 120,
+                    Vaegt = 45m,
                     RotationsRegel = "Ja",
                     ErSpecialelement = false,
                     ErGeometrielement = false
@@ -137,7 +135,7 @@ namespace MyProject.Data
                     Type = "Dør",
                     Serie = "Serie-A",
                     Hoejde = 2100,
-                    Bredde = 800,   // Smallere dør
+                    Bredde = 800,
                     Dybde = 120,
                     Vaegt = 42m,
                     RotationsRegel = "Ja",
@@ -151,14 +149,14 @@ namespace MyProject.Data
                     Type = "Dør",
                     Serie = "Serie-A",
                     Hoejde = 2100,
-                    Bredde = 1200,  // Dobbelt dør
+                    Bredde = 1200,
                     Dybde = 120,
                     Vaegt = 65m,
-                    RotationsRegel = "Nej",  // Tung dør må ikke roteres
+                    RotationsRegel = "Nej",
                     ErSpecialelement = false,
                     ErGeometrielement = false
                 },
-                // Vinduer - Serie B
+
                 new Element
                 {
                     Id = 4,
@@ -167,7 +165,7 @@ namespace MyProject.Data
                     Serie = "Serie-B",
                     Hoejde = 1200,
                     Bredde = 1000,
-                    Dybde = 150,    // Med karm
+                    Dybde = 150,
                     Vaegt = 28m,
                     RotationsRegel = "Ja",
                     ErSpecialelement = false,
@@ -193,7 +191,7 @@ namespace MyProject.Data
                     Reference = "VIND-003",
                     Type = "Vindue",
                     Serie = "Serie-B",
-                    Hoejde = 1800,  // Stort vindue
+                    Hoejde = 1800,
                     Bredde = 1500,
                     Dybde = 150,
                     Vaegt = 52m,
@@ -201,21 +199,21 @@ namespace MyProject.Data
                     ErSpecialelement = false,
                     ErGeometrielement = false
                 },
-                // Special vinduer - Serie C
+
                 new Element
                 {
                     Id = 7,
                     Reference = "SPEC-001",
                     Type = "Vindue",
                     Serie = "Serie-C",
-                    Hoejde = 2200,  // Panorama vindue
+                    Hoejde = 2200,
                     Bredde = 2400,
                     Dybde = 180,
                     Vaegt = 95m,
                     RotationsRegel = "Nej",
                     ErSpecialelement = true,
                     ErGeometrielement = false,
-                    MaksElementerPrPalle = 2  // Max 2 store panorama vinduer pr palle
+                    MaksElementerPrPalle = 2
                 },
                 new Element
                 {
@@ -223,17 +221,17 @@ namespace MyProject.Data
                     Reference = "GEOM-001",
                     Type = "Vindue",
                     Serie = "Serie-C",
-                    Hoejde = 1600,  // Buet vindue
+                    Hoejde = 1600,
                     Bredde = 1200,
                     Dybde = 200,
                     Vaegt = 48m,
-                    RotationsRegel = "Skal",  // Skal roteres pga. form
+                    RotationsRegel = "Skal",
                     ErSpecialelement = true,
-                    ErGeometrielement = true  // Må ikke stables ovenpå
+                    ErGeometrielement = true
                 }
             );
 
-            // Seed data - standard settings
+
             modelBuilder.Entity<PalleOptimeringSettings>().HasData(
                 new PalleOptimeringSettings
                 {

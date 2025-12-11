@@ -7,15 +7,15 @@ using MyProject.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Add DbContext
+
 builder.Services.AddDbContext<PalleOptimeringContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Identity
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
@@ -34,13 +34,13 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
-// Register application services
+
 builder.Services.AddScoped<IPalleService, PalleService>();
 builder.Services.AddScoped<IElementService, ElementService>();
 builder.Services.AddScoped<IPalleOptimeringSettingsService, PalleOptimeringSettingsService>();
 builder.Services.AddScoped<IPalleOptimeringService, PalleOptimeringService>();
 
-// Add Swagger/OpenAPI
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -52,7 +52,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Add CORS if needed
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -73,7 +73,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
     logger.LogInformation("✓ Database migrations kørt succesfuldt");
 
-    // Log antal elementer i databasen
+
     var elementCount = db.Elementer.Count();
     logger.LogInformation($"📊 Antal elementer i database: {elementCount}");
 
@@ -84,7 +84,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-// Log database connection info
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var appLogger = app.Services.GetRequiredService<ILogger<Program>>();
 if (connectionString?.Contains("bmm-server.database.windows.net") == true)
@@ -101,7 +101,7 @@ else
     appLogger.LogInformation("Database connection string: {ConnectionString}", connectionString?.Substring(0, displayLength));
 }
 
-// Configure the HTTP request pipeline
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -128,7 +128,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Seed database med roller og brugere
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

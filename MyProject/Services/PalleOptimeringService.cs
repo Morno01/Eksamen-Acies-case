@@ -25,7 +25,7 @@ namespace MyProject.Services
         {
             var resultat = new PakkeplanResultat();
 
-            // Hent settings
+
             var settings = request.SettingsId.HasValue
                 ? await _settingsService.GetSettings(request.SettingsId.Value)
                 : await _settingsService.GetAktivSettings();
@@ -37,7 +37,7 @@ namespace MyProject.Services
                 return resultat;
             }
 
-            // Hent elementer
+
             var elementer = await _context.Elementer
                 .Where(e => request.ElementIds.Contains(e.Id))
                 .ToListAsync();
@@ -49,7 +49,7 @@ namespace MyProject.Services
                 return resultat;
             }
 
-            // Hent aktive paller
+
             var paller = (await _palleService.GetAlleAktivePaller()).ToList();
 
             if (!paller.Any())
@@ -59,7 +59,7 @@ namespace MyProject.Services
                 return resultat;
             }
 
-            // Opret pakkeplan
+
             var pakkeplan = new Pakkeplan
             {
                 OrdreReference = request.OrdreReference,
@@ -71,7 +71,7 @@ namespace MyProject.Services
             _context.Pakkeplaner.Add(pakkeplan);
             await _context.SaveChangesAsync();
 
-            // Kør optimering algoritmen
+
             var optimeringContext = new OptimeringContext
             {
                 Elementer = elementer,
@@ -82,12 +82,12 @@ namespace MyProject.Services
 
             var pakkeplanPaller = KorOptimeringAlgoritme(optimeringContext);
 
-            // Gem resultatet
+
             pakkeplan.AntalPaller = pakkeplanPaller.Count;
             pakkeplan.Paller = pakkeplanPaller;
             await _context.SaveChangesAsync();
 
-            // Byg resultat DTO
+
             resultat.PakkeplanId = pakkeplan.Id;
             resultat.AntalPaller = pakkeplan.AntalPaller;
             resultat.AntalElementer = pakkeplan.AntalElementer;
@@ -122,30 +122,30 @@ namespace MyProject.Services
             var sorteringHelper = new ElementSorteringHelper(context.Settings);
             var placeringHelper = new ElementPlaceringHelper(context.Settings);
 
-            // Trin 1: Opret ElementMedData wrapper og find mindste palle for hvert element
+
             var elementerMedData = context.Elementer.Select(e => new ElementMedData(e)
             {
                 MinPalleId = FindMindstePalle(e, context.Paller)
             }).ToList();
 
-            // Trin 2: Sorter elementer efter kriterierne
+
             var sorterteElementer = sorteringHelper.SorterElementer(context.Elementer);
 
-            // Opdater med MinPalleId fra vores mapping
+
             foreach (var sorteret in sorterteElementer)
             {
                 var match = elementerMedData.First(e => e.Element.Id == sorteret.Element.Id);
                 sorteret.MinPalleId = match.MinPalleId;
             }
 
-            // Trin 3: Placer elementer på paller
+
             int palleNummer = 0;
 
             foreach (var elementData in sorterteElementer)
             {
                 bool placeret = false;
 
-                // Forsøg at placere på eksisterende paller
+
                 foreach (var pp in pakkeplanPaller)
                 {
                     if (placeringHelper.KanPlaceresPaaPalle(elementData, pp, context.Paller.First(p => p.Id == pp.PalleId)))
@@ -156,7 +156,7 @@ namespace MyProject.Services
                     }
                 }
 
-                // Hvis ikke placeret, opret ny palle
+
                 if (!placeret)
                 {
                     palleNummer++;
@@ -184,21 +184,21 @@ namespace MyProject.Services
 
         private int? FindMindstePalle(Element element, List<Palle> paller)
         {
-            // Find mindste palle som elementet kan være på
+
             foreach (var palle in paller.OrderBy(p => p.Sortering))
             {
-                // Tjek om element passer på pallen (højde og bredde)
+
                 bool passerPaaLaengde = element.Hoejde <= palle.Laengde + palle.Overmaal;
                 bool passerPaaBredde = element.Bredde <= palle.Bredde + palle.Overmaal;
                 bool passerRoteret = element.Bredde <= palle.Laengde + palle.Overmaal &&
                                     element.Hoejde <= palle.Bredde + palle.Overmaal;
 
-                // Tjek palletype hvis krævet
+
                 if (!string.IsNullOrEmpty(element.KraeverPalletype) &&
                     element.KraeverPalletype != palle.Palletype)
                     continue;
 
-                // Tjek højde begrænsninger
+
                 int totalHoejde = palle.Hoejde + element.Dybde;
                 if (totalHoejde > palle.MaksHoejde)
                     continue;
@@ -207,7 +207,7 @@ namespace MyProject.Services
                     return palle.Id;
             }
 
-            // Returner største palle hvis ingen passer
+
             return paller.OrderByDescending(p => p.Sortering).First().Id;
         }
 
@@ -232,7 +232,7 @@ namespace MyProject.Services
         }
     }
 
-    // Helper klasse til at holde kontekst under optimering
+
     internal class OptimeringContext
     {
         public List<Element> Elementer { get; set; } = new();
