@@ -4,9 +4,6 @@ using MyProject.Models;
 
 namespace MyProject.Data
 {
-    /// <summary>
-    /// Database context for palleoptimering systemet
-    /// </summary>
     public class PalleOptimeringContext : IdentityDbContext<ApplicationUser>
     {
         public PalleOptimeringContext(DbContextOptions<PalleOptimeringContext> options)
@@ -25,7 +22,6 @@ namespace MyProject.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Konfigurer decimal precision
             modelBuilder.Entity<Palle>()
                 .Property(p => p.Vaegt)
                 .HasPrecision(18, 2);
@@ -58,7 +54,6 @@ namespace MyProject.Data
                 .Property(p => p.SamletVaegt)
                 .HasPrecision(18, 2);
 
-            // Seed data - standard paller
             modelBuilder.Entity<Palle>().HasData(
                 new Palle
                 {
@@ -113,9 +108,7 @@ namespace MyProject.Data
                 }
             );
 
-            // Seed data - sample elementer med realistiske mål
             modelBuilder.Entity<Element>().HasData(
-                // Døre - Serie A
                 new Element
                 {
                     Id = 1,
@@ -158,7 +151,6 @@ namespace MyProject.Data
                     ErSpecialelement = false,
                     ErGeometrielement = false
                 },
-                // Vinduer - Serie B
                 new Element
                 {
                     Id = 4,
@@ -201,7 +193,6 @@ namespace MyProject.Data
                     ErSpecialelement = false,
                     ErGeometrielement = false
                 },
-                // Special vinduer - Serie C
                 new Element
                 {
                     Id = 7,
@@ -233,7 +224,6 @@ namespace MyProject.Data
                 }
             );
 
-            // Seed data - standard settings
             modelBuilder.Entity<PalleOptimeringSettings>().HasData(
                 new PalleOptimeringSettings
                 {

@@ -17,9 +17,6 @@ namespace MyProject.Controllers
             _settingsService = settingsService;
         }
 
-        /// <summary>
-        /// Hent alle settings
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PalleOptimeringSettings>>> GetAlleSettings()
         {
@@ -27,9 +24,6 @@ namespace MyProject.Controllers
             return Ok(settings);
         }
 
-        /// <summary>
-        /// Hent aktive settings
-        /// </summary>
         [HttpGet("aktiv")]
         public async Task<ActionResult<PalleOptimeringSettings>> GetAktivSettings()
         {
@@ -40,9 +34,6 @@ namespace MyProject.Controllers
             return Ok(settings);
         }
 
-        /// <summary>
-        /// Hent specifik settings
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<PalleOptimeringSettings>> GetSettings(int id)
         {
@@ -53,9 +44,6 @@ namespace MyProject.Controllers
             return Ok(settings);
         }
 
-        /// <summary>
-        /// Opret nye settings
-        /// </summary>
         [HttpPost]
         public async Task<ActionResult<PalleOptimeringSettings>> OpretSettings([FromBody] PalleOptimeringSettings settings)
         {
@@ -66,9 +54,6 @@ namespace MyProject.Controllers
             return CreatedAtAction(nameof(GetSettings), new { id = oprettetSettings.Id }, oprettetSettings);
         }
 
-        /// <summary>
-        /// Opdater eksisterende settings
-        /// </summary>
         [HttpPut("{id}")]
         public async Task<ActionResult<PalleOptimeringSettings>> OpdaterSettings(int id, [FromBody] PalleOptimeringSettings settings)
         {
@@ -86,9 +71,6 @@ namespace MyProject.Controllers
             return Ok(opdateretSettings);
         }
 
-        /// <summary>
-        /// Slet settings
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<ActionResult> SletSettings(int id)
         {

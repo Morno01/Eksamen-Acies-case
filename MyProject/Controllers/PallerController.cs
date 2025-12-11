@@ -17,9 +17,6 @@ namespace MyProject.Controllers
             _palleService = palleService;
         }
 
-        /// <summary>
-        /// Hent alle paller
-        /// </summary>
         [HttpGet]
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<IEnumerable<Palle>>> GetAllePaller()
@@ -28,9 +25,6 @@ namespace MyProject.Controllers
             return Ok(paller);
         }
 
-        /// <summary>
-        /// Hent alle aktive paller
-        /// </summary>
         [HttpGet("aktive")]
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<IEnumerable<Palle>>> GetAlleAktivePaller()
@@ -39,9 +33,6 @@ namespace MyProject.Controllers
             return Ok(paller);
         }
 
-        /// <summary>
-        /// Hent en specifik palle
-        /// </summary>
         [HttpGet("{id}")]
         [Authorize(Roles = "SuperUser,NormalUser")]
         public async Task<ActionResult<Palle>> GetPalle(int id)
@@ -53,9 +44,6 @@ namespace MyProject.Controllers
             return Ok(palle);
         }
 
-        /// <summary>
-        /// Opret en ny palle
-        /// </summary>
         [HttpPost]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Palle>> OpretPalle([FromBody] Palle palle)
@@ -67,9 +55,6 @@ namespace MyProject.Controllers
             return CreatedAtAction(nameof(GetPalle), new { id = oprettetPalle.Id }, oprettetPalle);
         }
 
-        /// <summary>
-        /// Opdater en eksisterende palle
-        /// </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult<Palle>> OpdaterPalle(int id, [FromBody] Palle palle)
@@ -88,9 +73,6 @@ namespace MyProject.Controllers
             return Ok(opdateretPalle);
         }
 
-        /// <summary>
-        /// Slet en palle
-        /// </summary>
         [HttpDelete("{id}")]
         [Authorize(Roles = "SuperUser")]
         public async Task<ActionResult> SletPalle(int id)
