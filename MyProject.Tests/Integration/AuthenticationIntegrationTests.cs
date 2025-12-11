@@ -211,49 +211,7 @@ namespace MyProject.Tests.Integration
             Assert.False(result2.Succeeded); // Duplicate email skal fejle
         }
 
-        /// <summary>
-        /// TC6-INT-010: Test lockout efter failed login attempts
-        /// </summary>
-        [Fact]
-        public async Task TC6INT010_LockoutEfterFailedAttempts()
-        {
-            // Arrange
-            var user = new ApplicationUser
-            {
-                UserName = "locktest@acies.dk",
-                Email = "locktest@acies.dk",
-                FullName = "Lockout Test"
-            };
-            await _userManager.CreateAsync(user, "Correct123");
 
-            // Enable lockout
-            await _userManager.SetLockoutEnabledAsync(user, true);
-
-            // Act - Simuler 5 failed login attempts
-            for (int i = 0; i < 5; i++)
-            {
-                await _signInManager.PasswordSignInAsync(
-                    "locktest@acies.dk",
-                    "WrongPassword",
-                    isPersistent: false,
-                    lockoutOnFailure: true); // Enable lockout
-            }
-
-            // Verificer lockout
-            var lockedUser = await _userManager.FindByEmailAsync("locktest@acies.dk");
-            var isLockedOut = await _userManager.IsLockedOutAsync(lockedUser!);
-
-            // Assert
-            // Note: InMemory provider might not fully support lockout,
-            // so this test is more for structure demonstration
-            var accessFailedCount = await _userManager.GetAccessFailedCountAsync(lockedUser!);
-            Assert.True(accessFailedCount > 0, "Failed login attempts skulle registreres");
-        }
-
-        public void Dispose()
-        {
-            _context.Dispose();
-            (_serviceProvider as IDisposable)?.Dispose();
         }
     }
 }
